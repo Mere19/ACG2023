@@ -40,26 +40,61 @@ public:
         if(!m_shape)
             throw NoriException("There is no shape attached to this Area light!");
 
-        throw NoriException("To implement...");
+        if (lRec.n.dot(lRec.wi) < 0.f) {
+            return m_radiance;
+        } else {
+            return 0;
+        }
     }
 
     virtual Color3f sample(EmitterQueryRecord & lRec, const Point2f & sample) const override {
         if(!m_shape)
             throw NoriException("There is no shape attached to this Area light!");
 
-        throw NoriException("To implement...");
+        ShapeQueryRecord sRec(lRec.ref);
+        m_shape->sampleSurface(sRec, sample);
+        lRec.p = sRec.p;
+        lRec.n = sRec.n;
+        lRec.wi = (lRec.p - lRec.ref).normalized();
+        lRec.shadowRay = Ray3f(lRec.ref, lRec.wi, Epsilon, (lRec.p - lRec.ref).norm()-Epsilon);
+        lRec.pdf = pdf(lRec);
+
+        if (lRec.pdf > 0.f) {
+            return eval(lRec) / lRec.pdf;
+        } else {
+            return 0;
+        }
     }
 
     virtual float pdf(const EmitterQueryRecord &lRec) const override {
         if(!m_shape)
             throw NoriException("There is no shape attached to this Area light!");
 
-        throw NoriException("To implement...");
+        float cosTheta = lRec.n.dot(-lRec.wi);
+        if (cosTheta > 0.f) {
+            ShapeQueryRecord sRec(lRec.ref, lRec.p);
+            return m_shape->pdfSurface(sRec) * (lRec.p - lRec.ref).squaredNorm() / cosTheta;
+        } else {
+            return 0.f;
+        }
     }
 
 
     virtual Color3f samplePhoton(Ray3f &ray, const Point2f &sample1, const Point2f &sample2) const override {
-        throw NoriException("To implement...");
+        /* sample surface */
+        ShapeQueryRecord sRec = ShapeQueryRecord();
+        m_shape->sampleSurface(sRec, sample1);
+
+        /* return 0 if pdf not valid */
+        if (sRec.pdf <= 0)
+            return 0;
+
+        /* sample direction */
+        Vector3f d = Warp::squareToCosineHemisphere(sample2);
+        Frame frame(sRec.n);
+        ray = Ray3f(sRec.p, frame.toWorld(d));
+
+        return m_radiance * M_PI / sRec.pdf;
     }
 
 

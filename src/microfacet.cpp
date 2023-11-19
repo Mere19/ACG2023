@@ -19,6 +19,7 @@
 #include <nori/bsdf.h>
 #include <nori/frame.h>
 #include <nori/warp.h>
+#include <nori/common.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -82,17 +83,61 @@ public:
 
     /// Evaluate the BRDF for the given pair of directions
     virtual Color3f eval(const BSDFQueryRecord &bRec) const override {
-    	throw NoriException("MicrofacetBRDF::eval(): not implemented!");
+        if (Frame::cosTheta(bRec.wo) <= 0.f || bRec.measure != ESolidAngle)
+            return 0;
+
+        /* diffuse */
+    	Color3f s1 = m_kd * INV_PI;
+
+        /* specular */
+        Vector3f wh = (bRec.wi + bRec.wo).normalized();
+        float D = evalBeckmann(wh);
+        float F = fresnel(bRec.wi.dot(wh), m_extIOR, m_intIOR);
+        float G = smithBeckmannG1(bRec.wi, wh) * smithBeckmannG1(bRec.wo, wh);
+        float cosThetai = Frame::cosTheta(bRec.wi);
+        float cosThetao = Frame::cosTheta(bRec.wo);
+        float s2 = m_ks * D * F * G / (4.f * cosThetai * cosThetao);
+
+        return s1 + Color3f(s2);
     }
 
     /// Evaluate the sampling density of \ref sample() wrt. solid angles
     virtual float pdf(const BSDFQueryRecord &bRec) const override {
-    	throw NoriException("MicrofacetBRDF::pdf(): not implemented!");
+        if (Frame::cosTheta(bRec.wo) <= 0.f || bRec.measure != ESolidAngle)
+            return 0;
+
+        Vector3f wh = (bRec.wi + bRec.wo).normalized();
+        float D = evalBeckmann(wh);
+        float cosThetah = Frame::cosTheta(wh);
+        float Jh = 1.f / (4.f * abs(wh.dot(bRec.wo)));
+        float cosThetao = Frame::cosTheta(bRec.wo);
+
+        return m_ks * D * cosThetah * Jh + (1 - m_ks) * cosThetao * INV_PI;
     }
 
     /// Sample the BRDF
     virtual Color3f sample(BSDFQueryRecord &bRec, const Point2f &_sample) const override {
-    	throw NoriException("MicrofacetBRDF::sample(): not implemented!");
+        bRec.eta = 1.f;
+        bRec.measure = ESolidAngle;
+        
+        if (Frame::cosTheta(bRec.wi) <= 0.f)
+            return 0;
+
+    	if (_sample[0] < m_ks) {    // specular
+            Point2f sample = Point2f(_sample[0] / m_ks, _sample[1]);
+            Vector3f wh = Warp::squareToBeckmann(sample, m_alpha);
+            bRec.wo = ((2.f * bRec.wi.dot(wh) * wh) - bRec.wi).normalized();
+        } else {    // diffuse
+            Point2f sample = Point2f((_sample[0] - m_ks) / (1.f - m_ks), _sample[1]);
+            bRec.wo = Warp::squareToCosineHemisphere(sample);
+        }
+
+        /* discard invalid samples */
+        if (pdf(bRec) > 0) {
+            return eval(bRec) * Frame::cosTheta(bRec.wo) / pdf(bRec);   // cos forshortening term
+        } else {
+            return 0;
+        }
     }
 
     virtual std::string toString() const override {

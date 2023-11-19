@@ -29,6 +29,7 @@ class PhotonMapper : public Integrator {
 public:
     /// Photon map data structure
     typedef PointKDTree<Photon> PhotonMap;
+    int m_emittedPhotonCount = 0;
 
     PhotonMapper(const PropertyList &props) {
         /* Lookup parameters */
@@ -51,7 +52,6 @@ public:
 		/* Estimate a default photon radius */
 		if (m_photonRadius == 0)
 			m_photonRadius = scene->getBoundingBox().getExtents().norm() / 500.0f;
-
 	
 
 		/* How to add a photon?
@@ -63,6 +63,57 @@ public:
 		 */
 
 		// put your code to trace photons here
+
+        /* trace photon */
+        int currPhotonCount = 0;
+        m_emittedPhotonCount = 0;
+        while (currPhotonCount < m_photonCount) {
+            /* sample photon */
+            const Emitter* light = scene->getRandomEmitter(sampler->next1D());
+            const int n_lights = scene->getLights().size();
+            Ray3f currRay;
+            Color3f t = 1.f;
+            Color3f w = light->samplePhoton(currRay, sampler->next2D(), sampler->next2D()) * n_lights;
+            Intersection its;
+            m_emittedPhotonCount ++;
+            
+            /* trace photon */
+            while (true) {
+                /* return black when no intersection */
+                if (!scene->rayIntersect(currRay, its))
+                    break;
+
+                /* Russian roulette */
+                float p = std::min(t.maxCoeff(), 0.99f);
+                if (sampler->next1D() > p || p <= 0.f) {
+                    break;
+                }
+                t /= p;
+
+                /* if diffuse surface, add photon record */
+                if (its.mesh->getBSDF()->isDiffuse()) {
+                    m_photonMap->push_back(Photon(
+                        its.p,
+                        -currRay.d,
+                        t * w
+                    ));
+                    currPhotonCount ++;
+                    if (currPhotonCount == m_photonCount) {
+                        break;
+                    }
+                }
+
+                /* sample brdf */
+                BSDFQueryRecord bRec(its.toLocal(-currRay.d));
+                bRec.p = its.p;
+                bRec.uv = its.uv;
+                Color3f brdf = its.mesh->getBSDF()->sample(bRec, sampler->next2D());
+
+                /* recursion */
+                t *= brdf;
+                currRay = Ray3f(bRec.p, its.toWorld(bRec.wo));
+            }
+        }
 
 		/* Build the photon map */
         m_photonMap->build();
@@ -86,8 +137,67 @@ public:
 		 */
 
 		// put your code for path tracing with photon gathering here
+        Intersection its;
+        Ray3f currRay = _ray;
+        Color3f t = 1.f;
+        Color3f color = 0;
 
-		return Color3f{};
+        /* path tracing */
+        while (true) {
+            if (!scene->rayIntersect(currRay, its)) {
+                break;
+            }
+
+            /* compute Le when intersection is an emitter */
+            if (its.mesh->isEmitter()) {
+                EmitterQueryRecord lRec(currRay.o, its.p, its.shFrame.n);
+                color += t * its.mesh->getEmitter()->eval(lRec);
+            }
+
+            /* if diffuse surface, estimate photon density */
+            if (its.mesh->getBSDF()->isDiffuse()) {
+                Color3f Lp = 0;
+
+                /* find photons */
+                std::vector<uint32_t> results;
+		        m_photonMap->search(its.p, // lookup position
+		            m_photonRadius,   // search radius
+		            results);
+                
+                /* photon gathering */
+                float area = M_PI * m_photonRadius * m_photonRadius;
+                for (uint32_t i : results) {
+                    const Photon &photon = (*m_photonMap)[i];
+                    BSDFQueryRecord bRec(its.shFrame.toLocal(-currRay.d), its.shFrame.toLocal(photon.getDirection()), ESolidAngle);
+                    bRec.p = its.p;
+                    bRec.uv = its.uv;
+                    Lp += its.mesh->getBSDF()->eval(bRec) * photon.getPower() / m_emittedPhotonCount;
+                }
+
+                color += t * (Lp * INV_PI / (m_photonRadius * m_photonRadius));
+                break;
+            }
+
+            /* Russian roulette */
+            float p = std::min(t.maxCoeff(), 0.99f);
+            // float p = 0.95;
+            if (sampler->next1D() > p || p <= 0.f) {
+                break;
+            }
+            t /= p;
+
+            /* sample brdf */
+            BSDFQueryRecord bRec(its.toLocal(-currRay.d));
+            bRec.p = its.p;
+            bRec.uv = its.uv;
+            Color3f brdf = its.mesh->getBSDF()->sample(bRec, sampler->next2D());
+            t *= brdf;
+
+            /* recursion */
+            currRay = Ray3f(bRec.p, its.toWorld(bRec.wo));
+        }
+
+		return color;
     }
 
     virtual std::string toString() const override {

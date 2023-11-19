@@ -43,7 +43,42 @@ public:
     }
 
     virtual Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const override {
-        throw NoriException("Unimplemented!");
+        // x determines reflection or refraction
+        // scaled x, y is used to map to the true color
+        bRec.measure = EDiscrete;
+        float cosTheta = Frame::cosTheta(bRec.wi);
+        float Fr = fresnel(cosTheta, m_extIOR, m_intIOR);
+
+        if (sample.x() < Fr) {    // reflection
+            /* Relative index of refraction: no change */
+            bRec.eta = 1.f;
+
+            /* Reflection in local coordinates */
+            bRec.wo = Vector3f(
+                -bRec.wi.x(),
+                -bRec.wi.y(),
+                bRec.wi.z()
+            );
+
+            return 1;
+        } else {    // refraction
+            /* Relative index of refraction: eta2 / eta1 */
+            Normal3f n;
+            if (cosTheta < 0) {
+                bRec.eta = m_extIOR / m_intIOR;
+                n = Normal3f(0.f, 0.f, -1.f);
+            } else if (cosTheta >= 0) {
+                bRec.eta = m_intIOR / m_extIOR;
+                n = Normal3f(0.f, 0.f, 1.f);
+            }
+
+            /* Refraction in local coordinates */
+            float eta_inv = 1.f / bRec.eta;
+            bRec.wo = -eta_inv * (bRec.wi - bRec.wi.dot(n) * n) - n * sqrtf(1 - eta_inv * eta_inv * (1 - bRec.wi.dot(n) * bRec.wi.dot(n)));
+            bRec.wo = bRec.wo.normalized();
+
+            return eta_inv * eta_inv;
+        }
     }
 
     virtual std::string toString() const override {

@@ -29,8 +29,13 @@ public:
     virtual std::string toString() const override;
 
     virtual T eval(const Point2f & uv) override {
-        /* to be implemented */
-	    return m_value1;
+        int i = floor(uv(0) / m_scale(0) - m_delta(0));
+        int j = floor(uv(1) / m_scale(1) - m_delta(1));
+        if ((i + j) % 2 == 0) {
+            return m_value1;
+        } else {
+            return m_value2;
+        }
     }
 
 protected:

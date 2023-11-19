@@ -20,6 +20,7 @@
 #include <nori/bsdf.h>
 #include <nori/emitter.h>
 #include <nori/warp.h>
+#include <nori/common.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -38,14 +39,45 @@ public:
     virtual Point3f getCentroid(uint32_t index) const override { return m_position; }
 
     virtual bool rayIntersect(uint32_t index, const Ray3f &ray, float &u, float &v, float &t) const override {
+        /* compute a, b and c */
+        Vector3f oc = ray.o - m_position;
+        float a = ray.d.squaredNorm();
+        float b = 2.0 * oc.dot(ray.d);
+        float c = oc.squaredNorm() - m_radius * m_radius;
 
-	/* to be implemented */
-        return false;
+        /* compute and check discriminant */
+        float discr = b * b - 4.0 * a * c;
+        if (discr < 0) {
+            return false;
+        }
 
+        /* compute smallest real positive root */
+        float sqrtd = sqrt(discr);
+        float root1 = (-b + sqrtd) / (2.0 * a);
+        float root2 = (-b - sqrtd) / (2.0 * a);
+        if (root2 < ray.mint || root2 > ray.maxt) {
+            if (root1 < ray.mint || root1 > ray.maxt) {
+                return false;
+            }
+            t = root1;
+            return true;
+        } else {
+            t = root2;
+            return true;
+        }
     }
 
     virtual void setHitInformation(uint32_t index, const Ray3f &ray, Intersection & its) const override {
-        /* to be implemented */
+        /* fill its (uv coordinates are computed based on lecture 2) */
+        its.p = ray(its.t);
+        Point3f pc = (its.p - m_position).normalized();
+        its.uv[0] = std::atan2(pc.y(), pc.x());
+        its.uv[1] = std::asin(pc.z());
+        its.uv[0] = 0.5 + its.uv[0] / (2.f * M_PI);
+        its.uv[1] = 0.5 + its.uv[1] / M_PI;
+        its.shFrame = Frame((its.p - m_position).normalized());
+        its.geoFrame = Frame((its.p - m_position).normalized());
+        its.mesh = this;
     }
 
     virtual void sampleSurface(ShapeQueryRecord & sRec, const Point2f & sample) const override {
