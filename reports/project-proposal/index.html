@@ -56,16 +56,23 @@ nethz: 21958772
 
 ID      | Short Name                |Points | Features (if required) & Comments
 --------|---------------------------|-------|----------------------------------
-15.5 | Disney BSDF | 15 | consistent of lighting responses
+15.5 | Disney BSDF | 15 | consistent lighting responses with materials
 5.3 | Images as Textures | 5 | texture of wall
 10.10 | Mip-Mapping for Textures | 10 | texture of wall
-15.10 | Moderate Denoising 2: Simple Denoising + Adaptive Sampling | 15 | denoising
-5.19 | Rendering using the Euler Cluster | 5 |
+15.10 | Moderate Denoising 2: Simple Denoising + Adaptive Sampling | 15 | -
+5.19 | Rendering using the Euler Cluster | 5 | -
 15.11 | Progressive Photon Mapping | 15 | light effect
 Total || 60 |
 
 _Describe how you plan to validate them and, if needed, provide some additional information here_
 
+Consistent lighting responses with materials: comparing results with that of PBRT, with same scene setting and camera parameters
+**
+Texture: comparing results with that of PBRT, with same scene setting and camera parameters
+**
+Light effect: comparing results with that of PBRT, with same scene setting and camera parameters
+**
+Denoising: visually verified
 
 # Supplementary
 * This report template uses [Markdeep](https://casual-effects.com/markdeep/), which supports Markdown syntax in HTML file. For example usage, please refer to the [official demo document](https://casual-effects.com/markdeep/features.md.html).
