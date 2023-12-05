@@ -26,8 +26,8 @@ NORI_NAMESPACE_BEGIN
 class DisneyDiffuse : public BSDF {
 public:
     DisneyDiffuse(const PropertyList &propList) {
-        /* RMS surface roughness */
-        m_alpha = propList.getFloat("alpha", 0.1f);
+        m_subsurface = propList.getFloat("subsurface", 0.1f);
+        m_roughness = propList.getFloat("roughness", 0.1f);
 
         /* base color */
         if(propList.has("albedo")) {
@@ -35,6 +35,39 @@ public:
             l.setColor("value", propList.getColor("albedo"));
             m_albedo = static_cast<Texture<Color3f> *>(NoriObjectFactory::createInstance("constant_color", l));
         }
+    }
+
+    /// @brief evaluate base diffusion
+    /// @param bRec 
+    /// @return evaluated color given bRec
+    Color3f evalBase(const BSDFQueryRecord &bRec) const {
+        /* compute FD90 */
+        float FD90 = 0.5f + 2 * m_roughness * abs(bRec.wo.dot((bRec.wi + bRec.wo).normalized()));
+
+        /* compute FD */
+        float FD_wi = 1 + (FD90 - 1) * (1 - pow(abs(bRec.wi.z()), 5));
+
+        return m_albedo->eval(bRec.uv) * INV_PI * FD_wi * FD90 * abs(bRec.wo.z());
+    }
+
+    /// @brief evaluate subsurface diffusion
+    /// @param bRec 
+    /// @return evaluated color given bRec
+    Color3f evalSubsurface(const BSDFQueryRecord &bRec) const {
+        /* compute FSS90 */
+        float FSS90 = m_roughness * pow(abs(bRec.wo.dot((bRec.wi + bRec.wo).normalized())), 2);
+
+        /* compute FSS_wi */
+        float FSS_wi = (1 + (FSS90 - 1) * pow(1 - abs(bRec.wi.z()), 5));
+
+        /* compute FSS_wo */
+        float FSS_wo = (1 + (FSS90 - 1) * pow(1 - abs(bRec.wo.z()), 5));
+
+        Color3f x = 1.25f * m_albedo->eval(bRec.uv) * INV_PI;
+        Color3f y = FSS_wi * FSS_wo * (1.f / (abs(bRec.wi.z()) + abs(bRec.wo.z())) - 0.5f) + 0.5f;
+        Color3f z = abs(bRec.wo.z());
+
+        return x * y * z;
     }
 
     /// Evaluate the BRDF for the given pair of directions
@@ -46,15 +79,10 @@ public:
             || Frame::cosTheta(bRec.wo) <= 0)
             return Color3f(0.0f);
 
-        /// TODO: add subsurface scattering lobe
+        Color3f base = evalBase(bRec);
+        Color3f subsurface = evalSubsurface(bRec);
 
-        /* compute FD90 */
-        float FD90 = 0.5f + 2 * m_alpha * abs(bRec.wo.dot((bRec.wi + bRec.wo).normalized()));
-
-        /* compute FD */
-        float FD_wi = 1 + (FD90 - 1) * (1 - pow(abs(bRec.wi.x()), 5));
-
-        return m_albedo->eval(bRec.uv) * INV_PI * FD_wi * FD90 * abs(bRec.wo.x());
+        return (1.f - m_subsurface) * base + m_subsurface * subsurface;
     }
 
     /// Evaluate the sampling density of \ref sample() wrt. solid angles
@@ -100,11 +128,15 @@ public:
             "DisneyDiffuse[\n"
             "  alpha = %f,\n"
             "]",
-            m_alpha
+            m_roughness
         );
     }
 private:
-    float m_alpha;
+    float m_subsurface;
+    float m_metallic;
+    float m_specular;
+    float m_roughness;
+    float m_sheen;
     Texture<Color3f> * m_albedo;
 };
 
