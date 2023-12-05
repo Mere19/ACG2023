@@ -37,6 +37,26 @@ public:
         }
     }
 
+    /// Add texture for the albedo
+    virtual void addChild(NoriObject *obj) override {
+        switch (obj->getClassType()) {
+            case ETexture:
+                if(obj->getIdName() == "albedo") {
+                    if (m_albedo)
+                        throw NoriException("There is already an albedo defined!");
+                    m_albedo = static_cast<Texture<Color3f> *>(obj);
+                }
+                else {
+                    throw NoriException("The name of this texture does not match any field!");
+                }
+                break;
+
+            default:
+                throw NoriException("Diffuse::addChild(<%s>) is not supported!",
+                                    classTypeName(obj->getClassType()));
+        }
+    }
+
     /// @brief evaluate base diffusion
     /// @param bRec 
     /// @return evaluated color given bRec
