@@ -100,6 +100,7 @@ set(NORI_SOURCE_FILES
   src/direct_ems.cpp
   src/direct_mats.cpp
   src/direct_mis.cpp
+  src/disney_diffuse.cpp
   src/normals.cpp
   src/path_mats.cpp
   src/path_mis.cpp
