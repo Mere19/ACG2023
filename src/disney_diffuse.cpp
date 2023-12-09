@@ -153,10 +153,7 @@ public:
     }
 private:
     float m_subsurface;
-    float m_metallic;
-    float m_specular;
     float m_roughness;
-    float m_sheen;
     Texture<Color3f> * m_albedo;
 };
 

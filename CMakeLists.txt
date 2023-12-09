@@ -101,6 +101,7 @@ set(NORI_SOURCE_FILES
   src/direct_mats.cpp
   src/direct_mis.cpp
   src/disney_diffuse.cpp
+  src/disney_metallic.cpp
   src/normals.cpp
   src/path_mats.cpp
   src/path_mis.cpp

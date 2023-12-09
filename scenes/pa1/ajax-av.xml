@@ -5,7 +5,7 @@
 	</sampler>
 
 	<!-- Use the average visibility integrator -->
-	<integrator type="av">
+	<integrator type="path_mats">
 		<float name="length" value="10"/>
 	</integrator>
 

@@ -4,17 +4,20 @@
 #include <nori/texture.h>
 #include <nori/common.h>
 
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+
 NORI_NAMESPACE_BEGIN
 
 class DisneyMetallic : public BSDF {
 public:
     DisneyMetallic(const PropertyList &propList) {
-        m_roughness = propList.getFloat("roughness");
-        m_anisotropic = propList.getFloat("anisotropic");
+        m_roughness = propList.getFloat("roughness", 0.1f);
+        m_anisotropic = propList.getFloat("anisotropic", 0.1f);
 
         m_aspect = sqrt(1.f - 0.9 * m_anisotropic);
-        m_alphax = max(0.0001, m_roughness * m_roughness / aspect);
-        m_alphay = max(0.0001, m_roughness * m_roughness * aspect);
+        m_alphax = fmax(0.0001, m_roughness * m_roughness / m_aspect);
+        m_alphay = fmax(0.0001, m_roughness * m_roughness * m_aspect);
 
         /* base color */
         if(propList.has("albedo")) {
@@ -39,7 +42,7 @@ public:
             return 0.f;
         }
 
-        float tan2Theta = Frame::tanTheta(wh) * Frame::tanTheta;
+        float tan2Theta = Frame::tanTheta(wh) * Frame::tanTheta(wh);
         float cos2Theta = Frame::cosTheta(wh) * Frame::cosTheta(wh);
         float cos4Theta = cos2Theta * cos2Theta;
 
@@ -82,7 +85,7 @@ public:
         Color3f Fm = Fresnel(bRec, wh);
         float Dm = TrowbridgeReitz(wh);
         float Gm = SmithG(bRec.wi) * SmithG(bRec.wo);
-        float cosTheta = Frame::cosTheta(wi);
+        float cosTheta = Frame::cosTheta(bRec.wi);
 
         return Fm * Dm * Gm / (4 * cosTheta);
     }
@@ -127,10 +130,10 @@ public:
         t2 = (1.0 - s) * sqrt(1.0 - t1 * t1) + s * t2;
 
         // reprojection onto hemisphere
-        Vector3f Nh = t1 * T1 + t2 * T2 + sqrt(max(0.0, 1.0 - t1*t1 - t2*t2)) * Vh;
+        Vector3f Nh = t1 * T1 + t2 * T2 + sqrt(fmax(0.0, 1.0 - t1*t1 - t2*t2)) * Vh;
 
         // transforming normal back to ellipsoid configuration
-        Vector3f Ne = Vector3f(m_alphax * Nh.x(), m_alphay * Nh.y(), max(0.0, Nh.z())).normalized();
+        Vector3f Ne = Vector3f(m_alphax * Nh.x(), m_alphay * Nh.y(), fmax(0.0, Nh.z())).normalized();
         bRec.wo = ((2.f * bRec.wi.dot(Ne) * Ne) - bRec.wi).normalized();
 
         /* discard invalid samples */
@@ -148,7 +151,7 @@ public:
             "  anisotropic = %f\n"
             "]",
             m_roughness,
-            m_anisotropic,
+            m_anisotropic
         );
     }
 private:
