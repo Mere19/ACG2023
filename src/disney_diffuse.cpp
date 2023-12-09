@@ -26,8 +26,8 @@ NORI_NAMESPACE_BEGIN
 class DisneyDiffuse : public BSDF {
 public:
     DisneyDiffuse(const PropertyList &propList) {
-        m_subsurface = propList.getFloat("subsurface", 0.1f);
-        m_roughness = propList.getFloat("roughness", 0.1f);
+        m_subsurface = propList.getFloat("subsurface", 0.5f);
+        m_roughness = propList.getFloat("roughness", 0.7f);
 
         /* base color */
         if(propList.has("albedo")) {
@@ -140,7 +140,7 @@ public:
 
         /* eval() / pdf() * cos(theta) = albedo. There
            is no need to call these functions. */
-        return m_albedo->eval(bRec.uv);
+        return eval(bRec) / pdf(bRec) * Frame::cosTheta(bRec.wo);
     }
 
     virtual std::string toString() const override {
