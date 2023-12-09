@@ -1,5 +1,3 @@
-#include <algorithm.h>
-
 #include <nori/bsdf.h>
 #include <nori/frame.h>
 #include <nori/warp.h>
