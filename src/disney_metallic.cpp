@@ -90,20 +90,21 @@ public:
     }
 
     /// Evaluate the sampling density of \ref sample() wrt. solid angles
+    /// ref: https://cseweb.ucsd.edu/~tzli/cse272/wi2023/homework1.pdf
     virtual float pdf(const BSDFQueryRecord &bRec) const override {
         if (Frame::cosTheta(bRec.wo) <= 0.f || bRec.measure != ESolidAngle)
             return 0;
 
         Vector3f wh = (bRec.wi + bRec.wo).normalized();
-        float D = evalBeckmann(wh);
-        float cosThetah = Frame::cosTheta(wh);
-        float Jh = 1.f / (4.f * abs(wh.dot(bRec.wo)));
-        float cosThetao = Frame::cosTheta(bRec.wo);
+        float D = TrowbridgeReitz(wh);
+        float Gi = SmithG(bRec.wi);
+        float Jh = 1.f / (4.f * abs(Frame::cosTheta(bRec.wi)));
 
-        return m_ks * D * cosThetah * Jh + (1 - m_ks) * cosThetao * INV_PI;
+        return D * Gi * Jh;
     }
 
-    /// Sample the BRDF
+    /// VNDF sample the BRDF
+    /// ref: https://jcgt.org/published/0007/04/01/
     virtual Color3f sample(BSDFQueryRecord &bRec, const Point2f &_sample) const override {
         bRec.eta = 1.f;
         bRec.measure = ESolidAngle;
@@ -111,14 +112,28 @@ public:
         if (Frame::cosTheta(bRec.wi) <= 0.f)
             return 0;
 
-    	if (_sample[0] < m_ks) {    // specular
-            Point2f sample = Point2f(_sample[0] / m_ks, _sample[1]);
-            Vector3f wh = Warp::squareToBeckmann(sample, m_alpha);
-            bRec.wo = ((2.f * bRec.wi.dot(wh) * wh) - bRec.wi).normalized();
-        } else {    // diffuse
-            Point2f sample = Point2f((_sample[0] - m_ks) / (1.f - m_ks), _sample[1]);
-            bRec.wo = Warp::squareToCosineHemisphere(sample);
-        }
+        // transform the view direction to the hemisphere configuration
+        Vector3f Vh = Vector3f(m_alphax * bRec.wi.x(), m_alphay * bRec.wi.y(), bRec.wi.z()).normalized();
+
+        // orthonormal basis
+        float lensq = Vh.x() * Vh.x() + Vh.y() * Vh.y();
+        Vector3f T1 = lensq > 0 ? Vector3f(-Vh.y(), Vh.x(), 0) / sqrt(lensq) : Vector3f(1, 0, 0);
+        Vector3f T2 = Vh.cross(T1);
+
+        // parameterization
+        float r = sqrt(_sample.x());
+        float phi = 2.f * M_PI * _sample.y();
+        float t1 = r * cos(phi);
+        float t2 = r * sin(phi);
+        float s = 0.5 * (1.0 + Vh.z());
+        t2 = (1.0 - s) * sqrt(1.0 - t1 * t1) + s * t2;
+
+        // reprojection onto hemisphere
+        Vector3f Nh = t1 * T1 + t2 * T2 + sqrt(max(0.0, 1.0 - t1*t1 - t2*t2)) * Vh;
+
+        // transforming normal back to ellipsoid configuration
+        Vector3f Ne = Vector3f(m_alphax * Nh.x(), m_alphay * Nh.y(), max(0.0, Nh.z())).normalized();
+        bRec.wo = ((2.f * bRec.wi.dot(Ne) * Ne) - bRec.wi).normalized();
 
         /* discard invalid samples */
         if (pdf(bRec) > 0) {
