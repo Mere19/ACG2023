@@ -93,6 +93,7 @@ set(NORI_SOURCE_FILES
   src/mirror.cpp
   src/dielectric.cpp
   src/photonmapper.cpp
+  src/ppm.cpp
   src/sphere.cpp
   src/arealight.cpp
   src/av.cpp

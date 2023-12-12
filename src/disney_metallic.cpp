@@ -144,6 +144,10 @@ public:
         }
     }
 
+    bool isDiffuse() const {
+        return true;
+    }
+
     virtual std::string toString() const override {
         return tfm::format(
             "Metallic[\n"

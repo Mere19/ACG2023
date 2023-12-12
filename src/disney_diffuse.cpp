@@ -143,6 +143,10 @@ public:
         return eval(bRec) / pdf(bRec) * Frame::cosTheta(bRec.wo);
     }
 
+    bool isDiffuse() const {
+        return true;
+    }
+
     virtual std::string toString() const override {
         return tfm::format(
             "DisneyDiffuse[\n"
