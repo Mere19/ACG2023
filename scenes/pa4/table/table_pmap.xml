@@ -7,9 +7,10 @@
 	</sampler>
 
 	<!-- Use the photon mapper -->
-	<integrator type="photonmapper">
-		<integer name="photonCount" value="5000000"/>
-		<float name="photonRadius" value="1"/>
+	<integrator type="progressive_photonmapper">
+		<integer name="photonCount" value="100000"/>
+		<integer name="iterCount" value="10"/>
+		<float name="alpha" value="0.7"/>
 	</integrator>
 
 	<!-- Render the scene as viewed by a perspective camera -->
