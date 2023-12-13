@@ -35,6 +35,7 @@ public:
     Vector3f w;     // ray direction
     const BSDF *bsdf;     // bsdf at x
     Point2i xy;     // pixel location
+    Point2f uv;     // uv location
     Color3f t;    // weight
     float R;        // current photon radius
     int N;          // accumulated photon count
@@ -97,7 +98,7 @@ public:
                     if (its.mesh->getBSDF()->isDiffuse()) {
                         m_photonMaps[i]->push_back(Photon(
                             its.p,
-                            -currRay.d,
+                            its.toLocal(-currRay.d),
                             t * w
                         ));
                         currPhotonCount ++;
@@ -131,7 +132,6 @@ public:
     }
 
     virtual Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &_ray) const override {
-        Intersection its;
         Ray3f currRay = _ray;
         Color3f t = 1.f;
         Color3f color = 0;
@@ -139,15 +139,23 @@ public:
 
         /* ray trace */ 
         while (true) {
+            Intersection its;
             if (!scene->rayIntersect(currRay, its)) {
                 break;
+            }
+
+            /* compute Le when intersection is an emitter */
+            if (its.mesh->isEmitter()) {
+                EmitterQueryRecord lRec(currRay.o, its.p, its.shFrame.n);
+                color += t * its.mesh->getEmitter()->eval(lRec);    // ???? segmentation fault ????
             }
 
             /* store hit point for diffuse surfaces */
             if (its.mesh->getBSDF()->isDiffuse()) {
                 hp.x = its.p;
-                hp.w = -currRay.d;
+                hp.w = its.toLocal(-currRay.d);
                 hp.bsdf = its.mesh->getBSDF();
+                hp.uv = its.uv;
                 hp.t = t;
                 hp.R = m_photonRadius;
                 hp.N = 0;
@@ -192,9 +200,9 @@ public:
             Color3f taoM = 0;
             for (uint32_t j : results) {
                 const Photon &photon = (*m_photonMaps[i])[j];
-                BSDFQueryRecord bRec(its.toLocal(-currRay.d), its.toLocal(photon.getDirection()), ESolidAngle);
-                bRec.p = its.p;
-                bRec.uv = its.uv;
+                BSDFQueryRecord bRec(hp.w, photon.getDirection(), ESolidAngle);
+                bRec.p = hp.x;
+                bRec.uv = hp.uv;
                 taoM += hp.bsdf->eval(bRec) * photon.getPower();
             }
 
