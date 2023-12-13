@@ -125,6 +125,7 @@ public:
                     currRay = Ray3f(bRec.p, its.toWorld(bRec.wo));
                 }
             }
+            m_emittedPhotonCounts.push_back(m_emittedPhotonCount);
 
             /* Build the photon map */
             m_photonMaps[i]->build();
@@ -239,6 +240,7 @@ private:
     float m_photonRadius;
     int m_iterCount;
     int m_emittedPhotonCount;
+    std::vector<int> m_emittedPhotonCounts;
     std::vector<std::unique_ptr<PhotonMap>> m_photonMaps;
     float m_alpha;
 };
