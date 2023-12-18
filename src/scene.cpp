@@ -67,6 +67,11 @@ void Scene::addChild(NoriObject *obj) {
                 m_shapes.push_back(mesh);
                 if(mesh->isEmitter())
                     m_emitters.push_back(mesh->getEmitter());
+                if (mesh->isMedium()) {
+                    if (mesh->getMedium()->isEmissive()) {
+                        m_emissiveMedia.push_back(mesh->getMedium());
+                    }
+                }
             }
             break;
         
@@ -90,6 +95,10 @@ void Scene::addChild(NoriObject *obj) {
             if (m_integrator)
                 throw NoriException("There can only be one integrator per scene!");
             m_integrator = static_cast<Integrator *>(obj);
+            break;
+
+        case EMedium:
+            m_media.push_back(static_cast<Medium*>(obj));
             break;
 
         default:

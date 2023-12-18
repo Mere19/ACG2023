@@ -21,6 +21,7 @@
 
 #include <nori/bvh.h>
 #include <nori/emitter.h>
+#include <nori/medium.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -71,6 +72,28 @@ public:
                 n-1);
         return m_emitters[index];
     }
+    const std::vector<Medium *>& getMedia() const { return m_media; }
+
+    const std::vector<Medium*>& getEmissiveMedia() const { return m_emissiveMedia; }
+
+    const Medium * getRandomEmissiveMedia(float rnd) const {
+        auto const& n = m_emissiveMedia.size();
+        size_t index = std::min(
+            static_cast<size_t>(std::floor(n * rnd)),
+            n - 1);
+        return m_emissiveMedia[index];
+    }
+
+    //determine whether to sample the emitters or the emissive media
+    const bool sampleEmitter(float rnd) const {
+        int n_emitters = m_emitters.size();
+        int n_emissiveMedia = m_emissiveMedia.size();
+        int total = n_emitters + n_emissiveMedia;
+        int index = std::min(
+            static_cast<int>(std::floor(total * rnd)),
+            total - 1);
+        return index < m_emitters.size();
+    }
 
     /**
      * \brief Intersect a ray against all triangles stored in the scene
@@ -117,6 +140,9 @@ public:
         return m_bvh->getBoundingBox();
     }
 
+    const Medium* getCameraMedium() const {
+        return m_cameraMedium;
+    }
     /**
      * \brief Inherited from \ref NoriObject::activate()
      *
@@ -134,11 +160,13 @@ public:
     virtual EClassType getClassType() const override { return EScene; }
 private:
     std::vector<Shape *> m_shapes;
+    std::vector<Medium*> m_media;
+    std::vector<Medium*> m_emissiveMedia;
     Integrator *m_integrator = nullptr;
     Sampler *m_sampler = nullptr;
     Camera *m_camera = nullptr;
     BVH *m_bvh = nullptr;
-
+    Medium* m_cameraMedium = nullptr;
     std::vector<Emitter *> m_emitters;
 };
 

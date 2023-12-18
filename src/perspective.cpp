@@ -38,7 +38,7 @@ public:
         m_invOutputSize = m_outputSize.cast<float>().cwiseInverse();
 
         /* determine whether to switch dof effects on*/
-        m_DOF = propList.getBoolean("DOF", true);
+        m_DOF = propList.getBoolean("DOF", false);
         m_focal = propList.getFloat("focal", 30);
         m_aperture = propList.getFloat("aperture", 0.1e-3);
 

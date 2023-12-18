@@ -22,6 +22,7 @@
 #include <nori/object.h>
 #include <nori/frame.h>
 #include <nori/bbox.h>
+#include <nori/medium.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -116,8 +117,18 @@ public:
     /// Return a pointer to an attached area emitter instance (const version)
     const Emitter *getEmitter() const { return m_emitter; }
 
+    /// Is this mesh an area emitter?
+    bool isMedium() const { return m_medium != nullptr; }
+
+    /// Return a pointer to an attached area emitter instance
+    Medium* getMedium() { return m_medium; }
+
+    /// Return a pointer to an attached area emitter instance (const version)
+    const Medium* getMedium() const { return m_medium; }
+
     /// Return a pointer to the BSDF associated with this mesh
     const BSDF *getBSDF() const { return m_bsdf; }
+
 
 
     /// Return the total number of primitives in this shape
@@ -147,17 +158,26 @@ public:
      * */
     virtual float pdfSurface(const ShapeQueryRecord & sRec) const = 0;
 
+    virtual void sampleVolume(ShapeQueryRecord& sRec, const Point3f& sample) const {}
+
+    virtual float pdfVolume(ShapeQueryRecord& sRec) const { return 0.f; }
     /**
      * \brief Return the type of object (i.e. Mesh/BSDF/etc.)
      * provided by this instance
      * */
     virtual EClassType getClassType() const override { return EMesh; }
 
+    /*
+    return the extrema z value of a shape, in the world coordinate system. Designed especially for sphere and cubic as a demonstration for heterogeneous function*/
+    virtual float getZMax() const { return 0.0f; }
+    virtual float getZMin() const { return 0.0f; }
+
+
 protected:
     BSDF *m_bsdf = nullptr;      ///< BSDF of the surface
     Emitter *m_emitter = nullptr;     ///< Associated emitter, if any
     BoundingBox3f m_bbox;                ///< Bounding box of the mesh
-
+    Medium* m_medium = nullptr;
 };
 
 NORI_NAMESPACE_END

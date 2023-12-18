@@ -12,7 +12,7 @@ public:
 
     }
 
-    Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const {
+    Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const{
         Intersection its;
         Ray3f currRay = ray;
         Color3f t = 1.f;
