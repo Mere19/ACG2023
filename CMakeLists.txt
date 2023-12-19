@@ -113,9 +113,7 @@ set(NORI_SOURCE_FILES
   src/path_mats.cpp
   src/path_mis.cpp
   src/pointlight.cpp
-<<<<<<< HEAD
   src/lodepng.cpp
-=======
   src/volpath.cpp
   src/homogeneous.cpp
   src/henyeyGreenstein.cpp
@@ -131,7 +129,6 @@ set(NORI_SOURCE_FILES
   src/perlinNoise3D.cpp
   src/volpath_emission.cpp
   src/heightVolume.cpp
->>>>>>> f518beb6d82e4e2c72c71f286d0418fceec1d784
 )
 
 add_executable(nori ${NORI_SOURCE_FILES})
