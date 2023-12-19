@@ -158,8 +158,17 @@ public:
      * */
     virtual float pdfSurface(const ShapeQueryRecord & sRec) const = 0;
 
-    virtual void sampleVolume(ShapeQueryRecord& sRec, const Point3f& sample) const {}
-
+    //virtual void sampleVolume(ShapeQueryRecord& sRec, const Point3f& sample) const { this->getBoundingBox().sampleVolume(sRec, sample); }
+    virtual void sampleVolume(ShapeQueryRecord& sRec, const Point3f& sample) const {
+        BoundingBox3f bbox = this->getBoundingBox();
+        Point3f sampled(0);
+        for (int i = 0; i < 3; i++) {
+            sampled[i] = bbox.min[i] + (bbox.max[i] - bbox.min[i]) * sample[i];
+        }
+        sRec.pdf = 1 / bbox.getVolume();
+        sRec.p = sampled;
+    }
+    /* return sRec.pdf and sRec.p*/
     virtual float pdfVolume(ShapeQueryRecord& sRec) const { return 0.f; }
     /**
      * \brief Return the type of object (i.e. Mesh/BSDF/etc.)

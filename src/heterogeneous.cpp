@@ -27,8 +27,8 @@ public:
     bool sample_freepath(MediumQueryRecord& mRec, Sampler* sampler) const override{        
         // sample distance based on delta tracking
         Vector3f direction = -mRec.wi;
-        Ray3f ray(mRec.ref, direction, 0, mRec.tMax);
-        Color3f transmittance(1.0f);
+        Ray3f ray = Ray3f(mRec.ref, direction, 0, mRec.tMax);
+        Color3f transmittance = Color3f(1);
         float mint, maxt;
         if (!m_shape->getBoundingBox().rayIntersect(ray, mint, maxt))
             return false;
@@ -40,16 +40,13 @@ public:
             t += - log(1 - sampler->next1D()) * m_invMaxDensity;
             if (t >= maxt)
                 break;
-
             Point3f p = ray(t);
             densityP = m_extinction->lookupFloat(p) * m_scale;
-
             if (densityP * m_invMaxDensity > sampler->next1D()) {
                 mRec.p = p;
                 mRec.ret = m_albedo->lookupRGB(p);
                 return true;
             }
-
         }
         mRec.p = mRec.ref + mRec.tMax * direction;
         mRec.ret = 1.f;
@@ -67,11 +64,10 @@ public:
         case EPhaseFunction:
             if (m_phase)
                 throw NoriException(
-                    "Medium: tried to register multiple Phase functions!");
+                    "Already have a phase function");
             m_phase = static_cast<PhaseFunction*>(obj);
             break;
         case EVolume:
-            // m_phase = static_cast<Volume *>(obj);
             if (obj->getIdName() == "albedo") {
                 m_albedo = static_cast<Volume*>(obj);
                 m_albedo->setMedium(static_cast<Medium*>(this));
@@ -79,19 +75,14 @@ public:
             else if (obj->getIdName() == "sigma_t") {
                 m_extinction = static_cast<Volume*>(obj);
                 m_extinction->setMedium(static_cast<Medium*>(this));
-                //m_maxDensity = m_scale * m_sigma_t->getMaximumValue();
-                //m_invMaxDensity = 1.0f / m_maxDensity;
             }
             break;
         default:
-            throw NoriException("Medium::addChild(<%s>) is not supported!",
+            throw NoriException("Invalid",
                 classTypeName(obj->getClassType()));
         }
     }
 
-    //void setShape(Shape* shape) override {
-    //    m_shape = shape;
-    //}
     virtual bool isHeterogeneous() const override{ return true; }
     virtual void volGrid() {
         if (m_extinction->isPerlin()) {

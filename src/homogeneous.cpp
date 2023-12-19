@@ -28,7 +28,7 @@ public:
 
     bool sample_freepath(MediumQueryRecord& mRec, Sampler* sampler) const {
         if (m_isRGB) {
-            // EBalance mode, Exponential distrib.; pick a random channel each time
+            // EBalance sampling for channel-variant extinction, pick a random channel each time
             int channel = std::min((int)(sampler->next1D() * 3.f), 2);
             float density = m_sigma_t[channel];
             if (density < Epsilon) {
@@ -37,10 +37,8 @@ public:
                 return false;
             }
             float t = -log(1.f - sampler->next1D()) / density;
-
             float pdf_failure = 0;
             float pdf_success = 0;
-
             float sampled_distance = t < mRec.tMax ? t : mRec.tMax;
             bool valid = t < mRec.tMax ? true : false;
             for (int i = 0; i < 3; ++i) {
@@ -50,13 +48,11 @@ public:
             }
             pdf_success /= 3.f;
             pdf_failure /= 3.f;
-
             Color3f transmittance = (-m_sigma_t * sampled_distance).exp();
             if (valid) {
                 mRec.p = mRec.ref + t * -mRec.wi;
                 if (mRec.p == mRec.ref) return false;
                 mRec.ret = m_sigma_s * transmittance / pdf_success;
-
             }
             else {
                 mRec.p = mRec.ref + mRec.tMax * -mRec.wi;
@@ -68,8 +64,7 @@ public:
             bool deltaTrack = false;
             if (deltaTrack) {
                 //perform delta tracking
-                Vector3f direction = -mRec.wi;
-                Ray3f ray(mRec.ref, direction, 0, mRec.tMax);
+                Ray3f ray(mRec.ref, -mRec.wi, 0, mRec.tMax);
                 float pdf_failure = 1.0f;
                 float pdf_success = 1.0f;
                 Color3f transmittance = Color3f(1.0f);
@@ -78,25 +73,21 @@ public:
                     return false;
                 mint = std::max(mint, ray.mint);
                 maxt = std::min(maxt, ray.maxt);
-
-                float t = mint, densityAtT = 0;
+                float t = mint;
+                float densityP = 0;
                 while (true) {
-                    //t -= log(1 - sampler->next1D()) * m_invMaxDensity;
-                    t -= log(1 - sampler->next1D()) * 1.0f / m_sigmaT_f;
+                    t += -log(1 - sampler->next1D()) * 1.0f / m_sigmaT_f;
                     if (t >= mRec.tMax)
                         break;
-
                     Point3f p = ray(t);
-                    //densityAtT = m_sigma_t->lookup(m_shape, p) * m_scale;
-                    densityAtT = m_sigmaT_f;
-
-                    if (densityAtT * 1.0f / m_sigmaT_f > sampler->next1D()) {
+                    densityP = m_sigmaT_f;
+                    if (densityP * 1.0f / m_sigmaT_f > sampler->next1D()) {
                         mRec.p = p;
                         mRec.ret = Color3f(m_sigmaS_f / m_sigmaT_f);
                         return true;
                     }
                 }
-                mRec.p = mRec.ref + mRec.tMax * direction;
+                mRec.p = mRec.ref + mRec.tMax * (- mRec.wi);
                 mRec.ret = Color3f(1.f);
                 return false;
             }else {
@@ -105,14 +96,13 @@ public:
 
                 float sampled_distance = t < mRec.tMax ? t : mRec.tMax;
                 bool valid = t < mRec.tMax ? true : false;
-                float transmittance = exp(-m_sigmaT_f * sampled_distance);
                 if (valid) {
-                    mRec.p = mRec.ref + t * -mRec.wi;
+                    mRec.p = mRec.ref + t * (- mRec.wi);
                     if (mRec.p == mRec.ref) return false;
                     mRec.ret = Color3f(m_albedo);
                 }
                 else {
-                    mRec.p = mRec.ref + mRec.tMax * -mRec.wi;
+                    mRec.p = mRec.ref + mRec.tMax * (- mRec.wi);
                     mRec.ret = Color3f(1.0);
                 }
                 return valid;
@@ -136,12 +126,12 @@ public:
         case EPhaseFunction:
             if (m_phase)
                 throw NoriException(
-                    "Medium: tried to register multiple Phase functions!");
+                    "Already have a phase function");
             m_phase = static_cast<PhaseFunction*>(obj);
             break;
 
         default:
-            throw NoriException("Medium::addChild(<%s>) is not supported!",
+            throw NoriException("Invalid",
                 classTypeName(obj->getClassType()));
         }
     }
