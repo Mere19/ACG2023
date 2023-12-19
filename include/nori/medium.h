@@ -31,6 +31,9 @@ NORI_NAMESPACE_BEGIN
 
     bool debug;
 
+    // test on whether the transmittance query is valid
+    bool validTr;
+
     /// Empty constructor
     MediumQueryRecord() {}
     /// Sample phase function and distance (free path)

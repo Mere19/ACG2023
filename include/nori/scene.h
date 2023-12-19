@@ -22,6 +22,7 @@
 #include <nori/bvh.h>
 #include <nori/emitter.h>
 #include <nori/medium.h>
+//class Shape;
 
 NORI_NAMESPACE_BEGIN
 
@@ -133,6 +134,10 @@ public:
         return m_bvh->rayIntersect(ray, its, true);
     }
 
+    bool rayCurrIntersect(const Ray3f& ray, const Shape *shape) const {
+        Intersection its; /* Unused */
+        return m_bvh->rayCurrIntersect(ray, its, true, shape);
+    }
     /**
      * \brief Return an axis-aligned box that bounds the scene
      */

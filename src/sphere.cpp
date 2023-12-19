@@ -90,17 +90,17 @@ public:
         return std::pow(1.f/m_radius,2) * Warp::squareToUniformSpherePdf(Vector3f(0.0f,0.0f,1.0f));
     }
 
-    virtual void sampleVolume(ShapeQueryRecord& sRec, const Point3f& sample) const override {
-        float r = m_radius * sample.x();
-        float theta = M_PI * sample.y();
-        float phi = 2 * M_PI * sample.z();
-        float x = r * sin(theta) * cos(phi);
-        float y = r * sin(theta) * sin(phi);
-        float z = r * cos(theta);
-        sRec.p = Point3f(m_position.x() + x, m_position.y() + y, m_position.z() + z);
-        sRec.n = Vector3f(x,y,z).normalized();
-        sRec.pdf = std::pow(1.f / m_radius, 3) * 3.f / (4.f * M_PI);
-    }
+    //virtual void sampleVolume(ShapeQueryRecord& sRec, const Point3f& sample) const override {
+    //    float r = m_radius * sample.x();
+    //    float theta = M_PI * sample.y();
+    //    float phi = 2 * M_PI * sample.z();
+    //    float x = r * sin(theta) * cos(phi);
+    //    float y = r * sin(theta) * sin(phi);
+    //    float z = r * cos(theta);
+    //    sRec.p = Point3f(m_position.x() + x, m_position.y() + y, m_position.z() + z);
+    //    sRec.n = Vector3f(x,y,z).normalized();
+    //    sRec.pdf = std::pow(1.f / m_radius, 3) * 3.f / (4.f * M_PI);
+    //}
 
     virtual float pdfVolume(ShapeQueryRecord& sRec) const override { return std::pow(1.f / m_radius, 3) * 3.f / (4.f * M_PI); }
 

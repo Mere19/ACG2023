@@ -15,8 +15,7 @@ public:
         float zMax = mesh->getZMax();
         float zMin = mesh->getZMin();
         float h = p.z() - zMin;
-        float b = 3;
-        //cout << "density: " << m_value * exp(-b * h) << endl;
+        float b = 6;
         return m_value * exp(-b * h);
         
     };

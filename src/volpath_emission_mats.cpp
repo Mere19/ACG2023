@@ -7,11 +7,11 @@
 NORI_NAMESPACE_BEGIN
 using namespace std;
 
-class VolPathEmissionIntegrator : public Integrator {
+class VolPathEmissionMATSIntegrator : public Integrator {
 private:
     float ray_length;
 public:
-    VolPathEmissionIntegrator(const PropertyList& props) {
+    VolPathEmissionMATSIntegrator(const PropertyList& props) {
     }
 
     Color3f Li(const Scene* scene, Sampler* sampler, const Ray3f& ray) const {
@@ -29,33 +29,6 @@ public:
         while (true) {
             MediumQueryRecord mRec(currRay.o, -currRay.d, its.t);
             if (current_medium && current_medium->sample_freepath(mRec, sampler)) {
-
-                //emission sampling
-                auto emissive = scene->getRandomEmissiveMedia(sampler->next1D());
-                int n_emissive = scene->getEmissiveMedia().size();
-                MediumQueryRecord mRec_ems(its.p);
-                Color3f Li = emissive->sample_radiance(mRec_ems, sampler);
-                float pdf_em = Epsilon;
-                Ray3f testRay = Ray3f(mRec_ems.p, (emissive->getShape()->getBoundingBox().getCenter() - mRec_ems.p).normalized(), Epsilon, (emissive->getShape()->getBoundingBox().getCenter() - mRec_ems.p).norm());
-                Ray3f sampleRay = Ray3f(its.p, (mRec_ems.p - its.p).normalized(), Epsilon, (mRec_ems.p - its.p).norm());
-
-                if (!scene->rayCurrIntersect(testRay, emissive->getShape())) {
-                    //if not rejected (inside bbox, outside the medium), accept the distribution
-                    if (!scene->rayIntersect(sampleRay)) {
-                        //if not occuluded set the pdf, otherwise 0 contribution.
-                        pdf_em = mRec_ems.radiance_pdf;
-                    }
-                }
-
-                Color3f Transmittance = transmittance(scene, sampler, sampleRay, current_medium);
-                PhaseFunctionQueryRecord pRec_ems(mRec.wi, sampleRay.d, ESolidAngle);
-                float pdf_mat = current_medium->getPhaseFunction()->pdf(pRec_ems);
-                if (pdf_em >= 2 * Epsilon) {
-                    //ignore invalid contributions
-                    color += t * Li * n_emissive / pdf_em;
-                }
-
-
                 // scattered inside the medium
                 PhaseFunctionQueryRecord pRec(mRec.wi);
                 current_medium->getPhaseFunction()->sample(pRec, sampler->next2D());   //sample direction to next interaction
@@ -63,6 +36,9 @@ public:
                 currRay = Ray3f(mRec.p, pRec.wo);
                 has_intersection = scene->rayIntersect(currRay, its);
                 t *= mRec.ret;
+                if (current_medium->isEmissive()) {
+                    color += t * mRec.radiance;           
+                }
             }
             else {
                 if (current_medium) {
@@ -78,6 +54,8 @@ public:
                     Color3f Li = its.mesh->getEmitter()->eval(lRec);
                     color += w_mat * t * its.mesh->getEmitter()->eval(lRec);
                 }
+
+                //determine whether to sample it or not
                 /* sample emitter */
                 auto light = scene->getRandomEmitter(sampler->next1D());
                 int n_lights = scene->getLights().size();
@@ -97,12 +75,12 @@ public:
                     }
                 }
 
-                /* Russian roulette */
-                float p = std::min(t.maxCoeff(), 0.99f);
-                if (sampler->next1D() > p || p <= 0.f) {
-                    break;
-                }
-                t /= p;
+            /* Russian roulette */
+            float p = std::min(t.maxCoeff(), 0.99f);
+            if (sampler->next1D() > p || p <= 0.f) {
+                break;
+            }
+            t /= p;
 
                 /* sample brdf */
                 BSDFQueryRecord bRec(its.toLocal((-currRay.d).normalized()));
@@ -145,65 +123,10 @@ public:
         return color;
     }
 
-    /* assumption: trRay.o, trRay.d, trRay.maxt*/
-    Color3f transmittance(const Scene* scene, Sampler* sampler, const Ray3f & trRay, const Medium* medium) const {
-        float start = 0.f;
-        Color3f Tr = Color3f(1);
-        const Medium* current_medium = medium;
-        Ray3f currRay = trRay;
-        Intersection its;
-        int count = 0;
-        int maxDepth = 30;
-        //based on the assumption that no overlapping medium
-        while (true) {
-            count++;
-            if (count > maxDepth) {
-                break;
-            }
-            if (start >= trRay.maxt) {
-                break;
-            }
-            bool intersect = scene->rayIntersect(currRay, its);
-            if (!intersect|| its.t >= currRay.maxt)  {
-                if (current_medium) {
-                    MediumQueryRecord segMRec(currRay.o, currRay(currRay.maxt));
-                    return Tr * current_medium->Tr(segMRec, sampler);
-                }
-                else {
-                    return Tr;
-                }
-            }
-            else {
-                if (!its.mesh->isMedium()) {
-                    return Color3f(0.0f);
-                }
-                else {
-                    if (Frame::cosTheta(its.shFrame.toLocal(currRay.d)) >= 0.0f && current_medium) {
-                        MediumQueryRecord segMRec(currRay.o, currRay(currRay.maxt));
-                        Tr *= current_medium->Tr(segMRec, sampler);
-                        current_medium = nullptr;
-                        start += its.t;
-                        currRay.maxt = trRay.maxt - start;
-                        currRay.o = trRay(start);
-                        currRay.update();
-                    }
-                    if (Frame::cosTheta(its.shFrame.toLocal(currRay.d)) < 0.0f && !current_medium) {
-                        current_medium = its.mesh->getMedium();
-                        start += its.t;
-                        currRay.maxt = trRay.maxt - start;
-                        currRay.o = trRay(start);
-                        currRay.update();
-                    }
-                }
-            }
-
-        }
-    }
-
     std::string toString() const {
-        return "VolPathEmissiveIntegrator[]";
+        return "VolPathEmissiveMATSIntegrator[]";
     }
 };
 
-NORI_REGISTER_CLASS(VolPathEmissionIntegrator, "vol_path_ems");
+NORI_REGISTER_CLASS(VolPathEmissionMATSIntegrator, "vol_path_ems_mats");
 NORI_NAMESPACE_END

@@ -18,7 +18,7 @@ public:
             for (int j = 0; j < col; j++) {
                 for (int i = 0; i < row; i++) {
                     m_grid[i + j * row + k * col * row] = static_cast<float>(rand()) / RAND_MAX * max;
-                    cout << m_grid[i + j * row + k * col * row] << endl;
+                    //cout << m_grid[i + j * row + k * col * row] << endl;
                 }
             }
         }

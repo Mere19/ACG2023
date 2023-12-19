@@ -80,6 +80,11 @@ public:
     bool rayIntersect(const Ray3f &ray, Intersection &its, 
         bool shadowRay = false) const;
 
+
+    /* consecutively keep track of the intersection, until hitting mesh surface or outside the target medium*/
+    bool rayCurrIntersect(const Ray3f& ray, Intersection& its,
+        bool shadowRay = false, const Shape *shape = nullptr) const;
+
     /// Return the total number of shapes registered with the BVH
     uint32_t getShapeCount() const { return (uint32_t) m_shapes.size(); }
 
