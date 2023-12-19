@@ -23,49 +23,89 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/back_wall.obj"/>
 
-		<bsdf type="diffuse">
-			<!-- <color name="albedo" value="0.800000,0.800000,0.800000"/>
-			 -->
+		<bsdf type="disney">
 			<texture name="albedo" type="imagetexture">
 				<string name="filename" value="textures/wall_painting.png"/>
 				<vector name="scale" value="1,1"/>
 			</texture>
+			<float name="subsurface" value="0.000000"/>
+			<float name="sheen" value="0.000000"/>
+			<float name="sheenTint" value="0.300000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoatGloss" value="0.030000"/>
+			<float name="specular" value="0.500000"/>
+			<float name="specTint" value="0.000000"/>
+			<float name="specTrans" value="0.000000"/>
+			<float name="roughness" value="0.800000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
 		</bsdf>
 	</mesh>
 
 	<mesh type="obj">
 		<string name="filename" value="meshes/ceiling.obj"/>
 
-		<bsdf type="diffuse">
-			<!-- <color name="albedo" value="0.800000,0.800000,0.800000"/> -->
+		<bsdf type="disney">
 			<texture name="albedo" type="imagetexture">
 				<string name="filename" value="textures/wall_painting.png"/>
 				<vector name="scale" value="1,1"/>
 			</texture>
+			<float name="subsurface" value="0.000000"/>
+			<float name="sheen" value="0.000000"/>
+			<float name="sheenTint" value="0.300000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoatGloss" value="0.030000"/>
+			<float name="specular" value="0.500000"/>
+			<float name="specTint" value="0.000000"/>
+			<float name="specTrans" value="0.000000"/>
+			<float name="roughness" value="0.800000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
 		</bsdf>
 	</mesh>
 
 	<mesh type="obj">
 		<string name="filename" value="meshes/floor.obj"/>
 
-		<bsdf type="diffuse">
+		<bsdf type="disney">
 			<!-- <color name="albedo" value="0.800000,0.800000,0.800000"/> -->
 			<texture name="albedo" type="imagetexture">
 				<string name="filename" value="textures/wall_painting.png"/>
 				<vector name="scale" value="1,1"/>
 			</texture>
+			<float name="subsurface" value="0.000000"/>
+			<float name="sheen" value="0.000000"/>
+			<float name="sheenTint" value="0.300000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoatGloss" value="0.030000"/>
+			<float name="specular" value="0.500000"/>
+			<float name="specTint" value="0.000000"/>
+			<float name="specTrans" value="0.000000"/>
+			<float name="roughness" value="0.800000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
 		</bsdf>
 	</mesh>
 
 	<mesh type="obj">
 		<string name="filename" value="meshes/left_wall.obj"/>
 
-		<bsdf type="diffuse">
-			<!-- <color name="albedo" value="0.800000,0.800000,0.800000"/> -->
+		<bsdf type="disney">
 			<texture name="albedo" type="imagetexture">
 				<string name="filename" value="textures/wall_painting.png"/>
 				<vector name="scale" value="1,1"/>
 			</texture>
+			<float name="subsurface" value="0.000000"/>
+			<float name="sheen" value="0.000000"/>
+			<float name="sheenTint" value="0.300000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoatGloss" value="0.030000"/>
+			<float name="specular" value="0.500000"/>
+			<float name="specTint" value="0.000000"/>
+			<float name="specTrans" value="0.000000"/>
+			<float name="roughness" value="0.800000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
 		</bsdf>
 	</mesh>
 
@@ -73,83 +113,87 @@
 		<string name="filename" value="meshes/right_wall.obj"/>
 
 		<bsdf name="DarkGreen" type="diffuse">
-			<!-- <color name="albedo" value="0.800000,0.800000,0.800000"/> -->
 			<texture name="albedo" type="imagetexture">
 				<string name="filename" value="textures/wall_painting.png"/>
 				<vector name="scale" value="1,1"/>
 			</texture>
+			<float name="subsurface" value="0.000000"/>
+			<float name="sheen" value="0.000000"/>
+			<float name="sheenTint" value="0.300000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoatGloss" value="0.030000"/>
+			<float name="specular" value="0.500000"/>
+			<float name="specTint" value="0.000000"/>
+			<float name="specTrans" value="0.000000"/>
+			<float name="roughness" value="0.800000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
 		</bsdf>
 	</mesh>
 
 	<mesh type="obj">
 		<string name="filename" value="meshes/Ladder_Painter_Ready_lambert8SG.obj"/>
 
-		<bsdf name="lambert8SG" type="diffuse">
-			<!-- <color name="albedo" value="0.800000,0.800000,0.800000"/> -->
+		<bsdf name="lambert8SG" type="disney">
 			<texture name="albedo" type="imagetexture">
 				<string name="filename" value="textures/Ladder.png"/>
 				<vector name="scale" value="1,1"/>
 			</texture>
-			<float name="metallic" value="0.000000"/>
 			<float name="subsurface" value="0.000000"/>
-			<float name="specular" value="0.500000"/>
-			<float name="specularTint" value="0.000000"/>
-			<float name="roughness" value="0.500000"/>
-			<float name="anisotropic" value="0.000000"/>
 			<float name="sheen" value="0.000000"/>
 			<float name="sheenTint" value="0.500000"/>
 			<float name="clearcoat" value="0.000000"/>
 			<float name="clearcoatGloss" value="0.030000"/>
+			<float name="specular" value="0.500000"/>
+			<float name="specTint" value="0.000000"/>
+			<float name="specTrans" value="0.000000"/>
+			<float name="roughness" value="0.500000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
 		</bsdf>
 	</mesh>
-
-	<!-- <mesh type="obj">
-		<string name="filename" value="meshes/Ladder_Painter_Ready_lambert9SG.obj"/>
-
-		<bsdf name="lambert9SG" type="diffuse">
-			<color name="albedo" value="0.800000,0.800000,0.800000"/>
-			<float name="metallic" value="0.000000"/>
-			<float name="subsurface" value="0.000000"/>
-			<float name="specular" value="0.500000"/>
-			<float name="specularTint" value="0.000000"/>
-			<float name="roughness" value="0.500000"/>
-			<float name="anisotropic" value="0.000000"/>
-			<float name="sheen" value="0.000000"/>
-			<float name="sheenTint" value="0.500000"/>
-			<float name="clearcoat" value="0.000000"/>
-			<float name="clearcoatGloss" value="0.030000"/>
-		</bsdf>
-	</mesh> -->
 
 	<mesh type="obj">
 		<string name="filename" value="meshes/sheep.obj"/>
 
-		<bsdf name="TexMap" type="diffuse">
+		<bsdf name="TexMap" type="disney">
 			<texture name="albedo" type="imagetexture">
 				<string name="filename" value="textures/sheep_texture.png"/>
 				<vector name="scale" value="1,1"/>
 			</texture>
-			<!-- <float name="metallic" value="0.000000"/>
-			<float name="subsurface" value="0.000000"/>
-			<float name="specular" value="0.000000"/>
-			<float name="specularTint" value="0.000000"/>
-			<float name="roughness" value="0.895389"/>
-			<float name="anisotropic" value="0.000000"/>
-			<float name="sheen" value="0.000000"/>
+			<float name="subsurface" value="0.300000"/>
+			<float name="sheen" value="0.300000"/>
 			<float name="sheenTint" value="0.500000"/>
 			<float name="clearcoat" value="0.000000"/>
-			<float name="clearcoatGloss" value="0.030000"/> -->
+			<float name="clearcoatGloss" value="0.000000"/>
+			<float name="specular" value="0.000000"/>
+			<float name="specTint" value="0.000000"/>
+			<float name="specTrans" value="0.000000"/>
+			<float name="roughness" value="0.700000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
 		</bsdf>
 	</mesh>
 
 	<mesh type="obj">
 		<string name="filename" value="meshes/Hay_Stack_Hay_bale_latest_Hay_bale1.obj"/>
 
-		<bsdf name="Hay_bale_latest_Hay_bale1" type="diffuse">
+		<bsdf name="Hay_bale_latest_Hay_bale1" type="disney">
 			<texture name="albedo" type="imagetexture">
 				<string name="filename" value="textures/hay_stack.png"/>
 				<vector name="scale" value="1,1"/>
 			</texture>
+			<float name="subsurface" value="0.000000"/>
+			<float name="sheen" value="0.000000"/>
+			<float name="sheenTint" value="0.500000"/>
+			<float name="clearcoat" value="0.000000"/>
+			<float name="clearcoatGloss" value="0.030000"/>
+			<float name="specular" value="0.500000"/>
+			<float name="specTint" value="0.000000"/>
+			<float name="specTrans" value="0.000000"/>
+			<float name="roughness" value="0.500000"/>
+			<float name="anisotropic" value="0.000000"/>
+			<float name="metallic" value="0.000000"/>
 		</bsdf>
 	</mesh>
 

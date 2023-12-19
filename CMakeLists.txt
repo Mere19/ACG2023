@@ -120,8 +120,6 @@ set(NORI_SOURCE_FILES
   src/heterogeneous.cpp
   src/isotropic.cpp
   src/nullBSDF.cpp
-  src/volpath_1.cpp
-  src/volpath_mis.cpp
   src/constantFloatVolume.cpp
   src/perlinVolume.cpp
   src/emissiveMedium.cpp
@@ -129,6 +127,7 @@ set(NORI_SOURCE_FILES
   src/perlinNoise3D.cpp
   src/volpath_emission.cpp
   src/heightVolume.cpp
+  src/disney.cpp
 )
 
 add_executable(nori ${NORI_SOURCE_FILES})

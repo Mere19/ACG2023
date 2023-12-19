@@ -71,7 +71,9 @@
         "valarray": "cpp",
         "variant": "cpp",
         "vector": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "adolcforward": "cpp",
+        "alignedvector3": "cpp"
     },
     "dotnet.defaultSolution": "disable"
 }
