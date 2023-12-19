@@ -12,13 +12,13 @@ public:
     }
     float sample(PhaseFunctionQueryRecord& pRec, const Point2f& sample) const override{
 
-        float cosTheta;
+        float cosTheta = 0.f;
         if (std::abs(m_g) < Epsilon) {
             cosTheta = 1 - 2 * sample.x();
         }
         else {
-            float sqrTerm = (1 - m_g * m_g) / (1 - m_g + 2 * m_g * sample.x());
-            cosTheta = (1 + m_g * m_g - sqrTerm * sqrTerm) / (2 * m_g);
+            float value = (1 - m_g * m_g) / (1 - m_g + 2 * m_g * sample.x());
+            cosTheta = (1 + m_g * m_g - value * value) / (2 * m_g);
         }
 
         float sinTheta = std::sqrt(1.0f - cosTheta * cosTheta);
@@ -35,12 +35,12 @@ public:
         return 1.0f;
     }
     float pdf(PhaseFunctionQueryRecord& pRec) const override{
-        float temp = 1.0f + m_g * m_g + 2.0f * m_g * pRec.wi.dot(pRec.wo);
-        return INV_FOURPI * (1 - m_g * m_g) / (temp * std::sqrt(temp));
+        float value = 1.0f + m_g * m_g + 2.0f * m_g * pRec.wi.dot(pRec.wo);
+        return INV_FOURPI * (1 - m_g * m_g) / (value * std::sqrt(value));
     }
     float eval(PhaseFunctionQueryRecord& pRec) const override{
-        float temp = 1.0f + m_g * m_g + 2.0f * m_g * pRec.wi.dot(pRec.wo);
-        return INV_FOURPI * (1 - m_g * m_g) / (temp * std::sqrt(temp));
+        float value = 1.0f + m_g * m_g + 2.0f * m_g * pRec.wi.dot(pRec.wo);
+        return INV_FOURPI * (1 - m_g * m_g) / (value * std::sqrt(value));
     }
     std::string toString() const override {
         return tfm::format("HenyeyGreenstein[]");

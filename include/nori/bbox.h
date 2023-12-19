@@ -20,7 +20,7 @@
 #define __NORI_BBOX_H
 
 #include <nori/ray.h>
-
+class Shape;
 NORI_NAMESPACE_BEGIN
 
 /**
@@ -391,6 +391,9 @@ template <typename _PointType> struct TBoundingBox {
 
         return true;
     }
+
+
+    
 
     PointType min; ///< Component-wise minimum 
     PointType max; ///< Component-wise maximum 

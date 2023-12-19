@@ -33,7 +33,7 @@ public:
                 // continuously scattering inside the medium
                 PhaseFunctionQueryRecord pRec(mRec.wi);
                 current_medium->getPhaseFunction()->sample(pRec, sampler->next2D());   
-                //sample direction to next sampling
+                //sample direction to next interaction
                 currRay = Ray3f(mRec.p, pRec.wo);
                 has_intersection = scene->rayIntersect(currRay, its);
                 t *= mRec.ret;
@@ -94,7 +94,7 @@ public:
                 /* current pdf mat */
                 float pdf_mat = its.mesh->getBSDF()->pdf(bRec);
                 if (Frame::cosTheta(its.shFrame.toLocal(currRay.d)) >= 0.0f && its.mesh->getMedium() == current_medium) {
-                    //current_medium = nullptr;
+                    //if escaping the medium, carefully pop
                     if (!media.empty()) {
                         media.pop();
                         if (media.empty()) {
@@ -106,7 +106,7 @@ public:
                     }
                 }
                 else if (Frame::cosTheta(its.shFrame.toLocal(currRay.d)) < 0.0f && its.mesh->getMedium() != nullptr) {
-                    //current_medium = its.mesh->getMedium();
+                    //if entering medium, push into the stack
                     current_medium = its.mesh->getMedium();
                     media.push(current_medium);
                 }

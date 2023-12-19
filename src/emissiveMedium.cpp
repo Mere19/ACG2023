@@ -25,11 +25,8 @@ public:
 
     // sample the freepath based on delta tracking
     bool sample_freepath(MediumQueryRecord& mRec, Sampler* sampler) const override {
-        Vector3f direction = -mRec.wi;
-        Ray3f ray(mRec.ref, direction, 0, mRec.tMax);
-        float pdf_failure = 1.0f;
-        float pdf_success = 1.0f;
-        Color3f transmittance(1.0f);
+        Ray3f ray = Ray3f(mRec.ref, -mRec.wi, 0, mRec.tMax);
+        Color3f transmittance = Color3f(1);
         Color3f Le(0.0f);
         float mint, maxt;
         if (!m_shape->getBoundingBox().rayIntersect(ray, mint, maxt))
@@ -41,11 +38,9 @@ public:
             t += - log(1 - sampler->next1D()) * m_invMaxDensity;
             if (t >= maxt)
                 break;
-
             Point3f p = ray(t);
             densityP = m_extinction->lookupFloat(p) * m_scale;
             transmittance = exp(-densityP * t);
-
             // combination of line and point integral
             //if ((sampler->next1D()) >= transmittance.x()) {
             //    Le += m_radiance->lookupFloat(p) * (1 - albedoAtT) * (1 - exp(-densityAtT * t));
@@ -60,13 +55,14 @@ public:
                 return true;
             }
         }
-        mRec.p = mRec.ref + mRec.tMax * direction;
+        mRec.p = mRec.ref + mRec.tMax * (- mRec.wi);
         mRec.ret = 1.f;
         return false;
     }
 
 
-    /* evaluate the transmittance between mRec.ref and mRec.p*/
+    /* evaluate the transmittance between mRec.ref and mRec.p
+    set mRec*/
     Color3f Tr(const MediumQueryRecord& mRec, Sampler* sampler) const override {
         Ray3f ray = Ray3f(mRec.ref, (mRec.p - mRec.ref).normalized(), 0, (mRec.p - mRec.ref).norm());
         float mint, maxt;
@@ -74,7 +70,6 @@ public:
             return Color3f(1.f);
         mint = std::max(mint, ray.mint);
         maxt = std::min(maxt, ray.maxt);
-        int nSamples = 2;
         float result = 0;
             float t = mint;
             while (true) {
@@ -85,12 +80,13 @@ public:
                 }
                 Point3f p = ray(t);
                 float density = m_extinction->lookupFloat(p) * m_scale;
-
                 if (density * m_invMaxDensity > sampler->next1D())
                     break;
             }
-        return Color3f(result / nSamples);
+        return Color3f(result);
     }
+
+    /* evaluate the radiance at given point*/
 
     virtual Color3f eval_radiance(Point3f& p) const override{
         return Color3f(m_radiance->lookupFloat(p));
@@ -107,6 +103,7 @@ public:
         if (!m_shape)
             throw NoriException(
                 "There is no shape attached to this medium!");
+        //randomly sample a point inside the boundingbox
         m_shape->sampleVolume(sRec, sample);
         mRec.p = sRec.p;
         mRec.wi = (mRec.p - mRec.ref).normalized();
@@ -120,7 +117,7 @@ public:
         case EPhaseFunction:
             if (m_phase)
                 throw NoriException(
-                    "Medium: tried to register multiple Phase functions!");
+                    "Already have a phase function");
             m_phase = static_cast<PhaseFunction*>(obj);
             break;
         case EVolume:
@@ -138,7 +135,7 @@ public:
             }
             break;
         default:
-            throw NoriException("Medium::addChild(<%s>) is not supported!",
+            throw NoriException("Invalid",
                 classTypeName(obj->getClassType()));
         }
     }

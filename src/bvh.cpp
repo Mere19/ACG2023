@@ -460,4 +460,60 @@ bool BVH::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) con
     return foundIntersection;
 }
 
+bool BVH::rayCurrIntersect(const Ray3f& _ray, Intersection& its, bool shadowRay, const Shape *_shape) const {
+    uint32_t node_idx = 0, stack_idx = 0, stack[64];
+
+    its.t = std::numeric_limits<float>::infinity();
+
+    /* Use an adaptive ray epsilon */
+    Ray3f ray(_ray);
+    if (ray.mint == Epsilon)
+        ray.mint = std::max(ray.mint, ray.mint * ray.o.array().abs().maxCoeff());
+
+    if (m_nodes.empty() || ray.maxt < ray.mint)
+        return false;
+
+    bool foundIntersection = false;
+    uint32_t f = 0;
+
+    while (true) {
+        const BVHNode& node = m_nodes[node_idx];
+
+        if (!node.bbox.rayIntersect(ray)) {
+            if (stack_idx == 0)
+                break;
+            node_idx = stack[--stack_idx];
+            continue;
+        }
+
+        if (node.isInner()) {
+            stack[stack_idx++] = node.inner.rightChild;
+            node_idx++;
+            assert(stack_idx < 64);
+        }
+        else {
+            for (uint32_t i = node.start(), end = node.end(); i < end; ++i) {
+                uint32_t idx = m_indices[i];
+                const Shape* shape = m_shapes[findShape(idx)];
+
+                float u, v, t;
+                if (shape->rayIntersect(idx, ray, u, v, t)) {
+                    if (t > _ray.maxt) {
+                        return false;
+                    }
+                    else if (shape == _shape ) {
+                        return true;
+                    }
+                }
+            }
+            if (stack_idx == 0)
+                break;
+            node_idx = stack[--stack_idx];
+            continue;
+        }
+    }
+
+    return false;
+}
+
 NORI_NAMESPACE_END
