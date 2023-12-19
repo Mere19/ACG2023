@@ -18,7 +18,7 @@
 		<integer name="sampleCount" value="256"/>
 	</sampler>
 
-    <medium type="medium">
+    <!-- <medium type="medium">
         <phase type="iso"/>
         <color name="sigma_a" value="1.0,0.0,3.0"/>
         <color name="sigma_s" value="2.0,2.0,2.0"/>
@@ -36,7 +36,7 @@
         <integer name="density_function" value="1"/>
         <vector name="origin" value="0.25800 0.332100 0.376700"/>
         <vector name="dimensions" value = "0.3263 0.3263 0.3263"/>
-    </medium>
+    </medium> -->
 
     
 
@@ -64,7 +64,7 @@
 		</bsdf>
 	</mesh>
 
-	<mesh type="sphere">
+	<mesh type="disney">
 		<point name="center" value="-0.421400 0.332100 -0.280000" />
 		<float name="radius" value="0.3263" />
 
@@ -77,7 +77,7 @@
         <point name="center" value="0 0 0" />
         <float name="radius" value="10" />
 
-        <bsdf type="diffuse">
+        <bsdf type="disney">
             <color name="albedo" value="0 0 0"/>
         </bsdf>
     </mesh>

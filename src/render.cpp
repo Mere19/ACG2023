@@ -196,6 +196,7 @@ void RenderThread::renderScene(const std::string & filename) {
 
             /* Save using the OpenEXR and PNG formats */
             bitmap->save(outputNameStem);
+            bitmap->saveToLDR(outputNameStem + ".png");
 
             delete m_scene;
             m_scene = nullptr;

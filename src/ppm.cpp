@@ -50,9 +50,9 @@ public:
     ProgressivePhotonMapper(const PropertyList &props) {
         /* Lookup parameters */
         m_photonCount  = props.getInteger("photonCount", 1000000);
-        m_photonRadius = props.getFloat("photonRadius", 1.f);
-        m_iterCount = props.getInteger("interCount", 10);
-        m_alpha = props.getFloat("alpha", 0.7);
+        m_photonRadius = props.getFloat("photonRadius", 0.f);
+        m_iterCount = props.getInteger("iterCount", 10);
+        m_alpha = props.getFloat("alpha", 0.9);
     }
 
     virtual void preprocess(const Scene *scene) override {
@@ -148,7 +148,7 @@ public:
             /* compute Le when intersection is an emitter */
             if (its.mesh->isEmitter()) {
                 EmitterQueryRecord lRec(currRay.o, its.p, its.shFrame.n);
-                color += t * its.mesh->getEmitter()->eval(lRec);    // ???? segmentation fault ????
+                color += t * its.mesh->getEmitter()->eval(lRec);
             }
 
             /* store hit point for diffuse surfaces */
@@ -173,7 +173,7 @@ public:
             t /= p;
 
             /* sample brdf */
-            BSDFQueryRecord bRec(its.shFrame.toLocal(-currRay.d));
+            BSDFQueryRecord bRec(its.toLocal(-currRay.d));
             bRec.p = its.p;
             bRec.uv = its.uv;
             Color3f brdf = its.mesh->getBSDF()->sample(bRec, sampler->next2D());
@@ -190,7 +190,7 @@ public:
             m_photonMaps[i]->search(hp.x, hp.R, results);
             if (results.size() == 0)
                 continue;
-            float density = (hp.N + results.size()) * INV_PI / (hp.R * hp.R);
+            // float density = (hp.N + results.size()) * INV_PI / (hp.R * hp.R);
 
             /* post-process: radius reduction */
             int N = (int) (hp.N + m_alpha * results.size());
@@ -201,7 +201,7 @@ public:
             Color3f taoM = 0;
             for (uint32_t j : results) {
                 const Photon &photon = (*m_photonMaps[i])[j];
-                BSDFQueryRecord bRec(hp.w, photon.getDirection(), ESolidAngle);
+                BSDFQueryRecord bRec(hp.w.normalized(), photon.getDirection().normalized(), ESolidAngle);
                 bRec.p = hp.x;
                 bRec.uv = hp.uv;
                 taoM += hp.bsdf->eval(bRec) * photon.getPower();

@@ -4,7 +4,17 @@
 
 **Report**
 
-**Prepare your project report. Feel free to completely replace this file!**
+Student Name/-s: Xichong Ling, Di Zhuang
+
+# Motivation image
+
+<img src="images/motivation.png" alt="Motivational image" class="img-responsive">
+
+## Student #1
+
+Student Name: Xichong Ling
+
+nethz: lingxi
 
 # Advanced Camera Effects (Depth of Field)
 The implementation of depth of field made use of the built-in function of sampling a ray. In sampleRay() functions, if depth-of-field mode is switched on, 
@@ -146,6 +156,86 @@ Const and Procedual Volume Radiance
 <script src="../resources/bootstrap.min.js"></script>
 <script src="../resources/jquery.event.move.js"></script>
 <script src="../resources/jquery.twentytwenty.js"></script>
+
+## Student #2
+
+Student Name: Di Zhuang
+
+nethz: dzhuang
+
+# Disney BSDF (15 points)
+
+Disney BSDF is implemented in `src/disney.cpp`. All 10 parameters `subsurface`, `sheen`, `sheen tint`, `clearcoat`,
+`specular`, `specular tint`, `specular transmission`, `roughness`, `anistropic`, `metallic` are included.
+All 3 methods `eval(...)`, `pdf(...)` and `sample(...)` are implemented for the 4 lobes `diffuse`, `metallic`,
+`clearcoat` and `sheen` based on Disney BSDF 2012. The `pdf(...)` of the Disney BSDF is equal to the weighted sum of
+the `pdf(...)` methods of the 4 lobes and the sampling of the Disney BSDF is defined accordingly.
+Furthermore, importance sampling is implemented based on the weights of the lobes.
+
+In particular, as for the sampling of the `metallic` lobe, advanced VNDF sampling method (ref: https://jcgt.org/published/0007/04/01/)
+is implemented because the corresponding cdf has no close-form inverse.
+
+Below is the comparison of my Disney BSDF against the principled BSDF mitsuba for the same set of parameters.
+Note that the principled BSDF of mitsuba is based on 
+Disney BSDF 2015 and uses different sampling rates for the lobes so the resulting image might not be very similiar.
+
+**Parameters**
+
+ID      | Short Name                
+--------|---------------------------
+subsurface | 0.0
+sheen | 0.3
+sheenTint | 0.2
+clearcoat | 0.6
+clearcoatGloss | 0.3
+specular | 0.6
+specTint | 0.4
+specTrans | 0.4
+roughness | 0.2
+anisotropic | 0.5
+metallic | 0.7
+
+<div class="twentytwenty-container">
+    <img src="images/cbox_disney_metallic_nori.png" alt="Disney_Diffuse_Nori" class="img-responsive">
+    <img src="images/cbox_disney_metallic_mitsuba.png" alt="Disney_Diffuse_Mitsuba" class="img-responsive">
+</div>
+
+In our final scene, Disney BSDF is used for all objects.
+
+# Image as textures (5 points)
+
+Image as textures is implemented in `src/imagetexture.cpp`. To handle reading .png files,
+I use `lodepng.h` and `lodepng.cpp` downloaded from github. Below is the validation of my implementation by comparing
+the original image with the result of using the image as texture of a mug.
+
+<div class="twentytwenty-container">
+    <img src="images/floor_texture.png" alt="floor texture" class="img-responsive">
+    <img src="images/mug_texture1.png" alt="mug texture 1" class="img-responsive">
+    <img src="images/mug_texture2.png" alt="mug texture 2" class="img-responsive">
+    <img src="images/mug_texture3.png" alt="mug texture 3" class="img-responsive">
+</div>
+
+<div class="twentytwenty-container">
+    <img src="images/imagetexture.png" alt="image as textures" class="img-responsive">
+</div>
+
+In our final scene, Image as Textures is used for the texturing of all objects except the sphere light.
+
+# Progressive photon mapping (15 points)
+
+Progressive photon mapping (ref: http://graphics.ucsd.edu/~henrik/papers/progressive_photon_mapping/progressive_photon_mapping.pdf)
+is implemented in src/ppm.cpp. Mitsuba does not have an implementation for progressive photon mapping. So the implementation
+is validated against the photon mapper implemented in assignment 4. For both integrators, we set the total number of collected photons to
+10000000. However, since we have `alpha = 0.9` (each photon has probability 10% to be disregarded) for progressive photon mapper, we are actually using 10% less photons than we do 
+for photon mapper. In the comparison below, it can be seen that progressive photon mapper achieves similar rendering quality 
+despite using less photons.
+
+<div class="twentytwenty-container">
+    <img src="images/cbox_pmap.png" alt="photon mapper" class="img-responsive">
+    <img src="images/cbox_ppmap.png" alt="progressive photon mapper" class="img-responsive">
+</div>
+
+In the final scene, Progressive Photon Mapper is used as the integrator.
 
 <script>
 $(window).load(function(){$(".twentytwenty-container").twentytwenty({default_offset_pct: 0.5});});

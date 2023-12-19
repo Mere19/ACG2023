@@ -165,8 +165,13 @@ public:
     */
     Color3f Fresnel(const BSDFQueryRecord& bRec, const Vector3f& wh) const {
         Color3f basecolor = m_albedo->eval(bRec.uv);
+        float luminance = basecolor.getLuminance();
+        Color3f Ctint = luminance > 0 ? basecolor / luminance : Color3f(1.f);
+        float R0_eta = (m_eta - 1) * (m_eta - 1) / (m_eta + 1) / (m_eta + 1);
+        Color3f Ks = (1 - m_specTint) + m_specTint * Ctint;
+        Color3f C0 = m_specular * R0_eta * (1 - m_metallic) * Ks + m_metallic * basecolor;
 
-        return basecolor + (1.f - basecolor) * float(pow(1 - abs(wh.dot(bRec.wo)), 5));
+        return C0 + (1.f - C0) * float(pow(1 - wh.dot(bRec.wo), 5));
     }
 
     /// Evaluate the Trowbridge-Reitz distribution Dm
@@ -213,8 +218,10 @@ public:
     /// Evaluate the BRDF for the given pair of directions
     Color3f evalMetallic(const BSDFQueryRecord &bRec) const {
         /* no reflection from the back */
-        if (Frame::cosTheta(bRec.wo) <= 0.f || bRec.measure != ESolidAngle)
-            return 0;
+        if (bRec.measure != ESolidAngle
+            || Frame::cosTheta(bRec.wi) <= 0
+            || Frame::cosTheta(bRec.wo) <= 0)
+            return Color3f(0.0f);
 
         Vector3f wh = (bRec.wi + bRec.wo).normalized();
         Color3f Fm = Fresnel(bRec, wh);
@@ -348,6 +355,11 @@ public:
     /* Sheen */
     /// Evaluate the Fresnel term Fm
     Color3f evalSheen(const BSDFQueryRecord& bRec) const {
+        if (bRec.measure != ESolidAngle
+            || Frame::cosTheta(bRec.wi) <= 0
+            || Frame::cosTheta(bRec.wo) <= 0)
+            return Color3f(0.0f);
+            
         Color3f basecolor = m_albedo->eval(bRec.uv);
         float luminance = basecolor.getLuminance();
 
@@ -436,8 +448,8 @@ public:
 
         bRec.measure = ESolidAngle;
 
-        float diffuseWeight = 1.f - m_metallic;
-        float metalWeight = 1.f;
+        float diffuseWeight = (1.f - m_metallic * (1 - m_specTrans));
+        float metalWeight =  (1 - m_specTrans * (1 - m_metallic));
         float clearcoatWeight = 0.25 * m_clearcoat;
 
         // Construct cdf
