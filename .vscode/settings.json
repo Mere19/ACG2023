@@ -72,5 +72,6 @@
         "variant": "cpp",
         "vector": "cpp",
         "algorithm": "cpp"
-    }
+    },
+    "dotnet.defaultSolution": "disable"
 }

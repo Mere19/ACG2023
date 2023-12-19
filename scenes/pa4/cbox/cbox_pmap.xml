@@ -23,9 +23,12 @@
 
 	<mesh type="obj">
 		<string name="filename" value="meshes/walls.obj"/>
-
 		<bsdf type="diffuse">
 			<color name="albedo" value="0.725 0.71 0.68"/>
+			<!-- <texture type="image_texture" name="albedo">
+                <string name="fileName" value="table_pmap.exr"/>
+                <vector name="scale" value="1.1,1.1"/>
+            </texture> -->
 		</bsdf>
 	</mesh>
 
