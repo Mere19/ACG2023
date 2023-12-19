@@ -55,6 +55,17 @@ void Shape::addChild(NoriObject *obj) {
             m_emitter->setShape(static_cast<Shape*>(this));
             break;
 
+        case EMedium: 
+             if (m_medium)
+                throw NoriException(
+                    "Mesh: tried to register multiple medium instances!");
+            m_medium = static_cast<Medium *>(obj);
+            m_medium->setShape(static_cast<Shape*>(this));
+            if (m_medium->isHeterogeneous()) {
+                m_medium->volGrid();
+            }
+            break;
+
         default:
             throw NoriException("Shape::addChild(<%s>) is not supported!",
                                 classTypeName(obj->getClassType()));

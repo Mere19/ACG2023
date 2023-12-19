@@ -37,6 +37,11 @@ public:
         m_outputSize.y() = propList.getInteger("height", 720);
         m_invOutputSize = m_outputSize.cast<float>().cwiseInverse();
 
+        /* determine whether to switch dof effects on*/
+        m_DOF = propList.getBoolean("DOF", false);
+        m_focal = propList.getFloat("focal", 30);
+        m_aperture = propList.getFloat("aperture", 0.1e-3);
+
         /* Specifies an optional camera-to-world transformation. Default: none */
         m_cameraToWorld = propList.getTransform("toWorld", Transform());
 
@@ -97,7 +102,7 @@ public:
             samplePosition.y() * m_invOutputSize.y(), 0.0f);
 
         /* Turn into a normalized ray direction, and
-           adjust the ray interval accordingly */
+            adjust the ray interval accordingly */
         Vector3f d = nearP.normalized();
         float invZ = 1.0f / d.z();
 
@@ -106,6 +111,18 @@ public:
         ray.mint = m_nearClip * invZ;
         ray.maxt = m_farClip * invZ;
         ray.update();
+
+        /* if DOF effect is on
+        */
+        if (m_DOF) {
+            Point3f focalPoint = ray(m_focal);      // focal point in world space
+            Point2f shiftedOrigin = Warp::squareToUniformDisk(apertureSample) * m_aperture;
+            ray.o = m_cameraToWorld * Point3f(shiftedOrigin.x(), shiftedOrigin.y(), 0.0f);
+            ray.d = (focalPoint - ray.o).normalized();
+            ray.mint = m_nearClip * invZ;
+            ray.maxt = m_farClip * invZ;
+            ray.update();
+        }
 
         return Color3f(1.0f);
     }
@@ -149,6 +166,9 @@ private:
     float m_fov;
     float m_nearClip;
     float m_farClip;
+    bool m_DOF;
+    float m_focal;
+    float m_aperture;
 };
 
 NORI_REGISTER_CLASS(PerspectiveCamera, "perspective");

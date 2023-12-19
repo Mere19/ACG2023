@@ -6,6 +6,137 @@
 
 **Prepare your project report. Feel free to completely replace this file!**
 
+# Advanced Camera Effects (Depth of Field)
+The implementation of depth of field made use of the built-in function of sampling a ray. In sampleRay() functions, if depth-of-field mode is switched on, 
+We define convergence point as $o+f\vec{d}$, $f$ being the focal length parameter. The resulting spherical plane generates in-focus images. Then we are 
+able to add the blur effects by shifting the $o$ by an apertureSample difference and recaculating the ray from the shifted origin to the focal point.
+****
+Files Modified: src/perspective.cpp
+## Validation
+**Comparison: Depth of Field**
+<div class="twentytwenty-container">
+    <img src="images/sphere-texture.png" alt="Nori_DOF_Aperture0.2" class="img-responsive">
+    <img src="images/sphere-texture_mts.png" alt="Mitsuba_DOF_Aperture0.2" class="img-responsive">
+    <img src="images/sphere-texture_noDOF.png" alt="Nori_no_DOF" class="img-responsive">
+    <img src="images/sphere-texture_noDOF_mts.png" alt="Mitsuba_no_DOF" class="img-responsive">
+</div>
+
+# Participating Media
+The general logic of my Volume Rendering implementation is: The medium is bounded by a shape, and the two are injectively assigned in the scene. One medium would have various
+properties, for example, albedo, extinction coefficient, and emission radiance. If these attributes vary spatiously (typical of heterogeneous medium), we assign a Volume
+for each property to query the field information(mainly based on the 3D space information).
+I implemented a naive path tracer based on material sampling in volpath.cpp. Instead of conditioning on whether the ray intersects with the scene to terminate ray transportation
+in path_mats, the ray now has a chance of scattering in the medium. Therefore we first check if the ray is transporting inside a medium,
+if so, sample a free path along the incident direction. If the free-path sampling succeed (the sampled free-path fall inside the medium), propogate the ray along a new direction chosen by
+phase function sampling. Keep on scattering until failure (hitting a surface). This would lead to entering the "surface interaction part" in the slides,
+where we perform the bsdf sampling and propagate the ray direction accordingly.
+Modified Files: nori/Medium.h, src/volpath.cpp
+**
+Failure to sampling a free path as well as intersecting the scene outside a medium is handled in the "surface interaction part", notice the intersecting
+surface can be inward and outward side of a medium, bsdf surface, I assign a null bsdf which preserves the direction and throughput of the incident
+ray direction so that we can deal with all these surface cases coherently. Another thing to notice is the proper update of current medium,
+based on the assumption that medium is bounded by a 1-manifold, I added the medium related to the shape to a stack when entering the medium, and pop
+the stack after escaping. For cases when the camera is inside a medium, the current medium should be retrieved from the scene in advance.
+****
+Though slowly the convergance is, the estimator maintains an unbiased performance comparing to Mitsuba.
+****
+****
+## Homogeneous Medium
+Following the convention of Mitsuba, we can specify two main attributes to control the appereance of the medium, the extinction coefficient
+and the albedo, which can take the forms of either RGB or float. The total extinction coefficients equals tothe sum of scattering coefficients and absorption
+coefficients; albedo equaling to the ratio of scattering coefficient and total absorption coefficients, the bigger the albedo is, it is closer to
+a perfect scattering. In the cases that extinction coefficient has multiple channels, we need to pick a random color channel to sample each time. If the free-path sampling
+succeed, we return the $\frac{\sigma_s * Tr(x,x')}{pdf_t}$ value, which can be reduced to albedo at that point. Otherwise the return value is $. The results are unbiased comparing to Mitsuba.
+**
+Modified Files:  src/homogeneous.cpp
+****
+## Heterogeneous Medium
+The free-path sampling method should be adapted for spatially-variant physical properties. Delta tracking is thus introduced. We fill the uneven medium with virtual particles
+so that we can simulate the sampling strategy as in the homogeneous medium. We terminate probalistically, ignoring the invalid collision on the virtual density
+to achieve unbiased results.
+As mentioned, the volume node is introduced for querying information on each point. I implemented constant value Volume which returns a constant float or RGB value,
+heightVolume of which the density decays exponentially as the height grows, procedual volume which produces 3D Grid perlin noise. As I found the two generated volume a bit hard to verify, I also implemented
+a gridVolume which parses a .vol file encoded by Mitsuba to get a visual verification. The file header specifies the grid dimensions and the bounding box vertex, from which we can 
+construct an AABB and do coordinates transformation. The density information is thus stored inside the array and value at given points inside the volume can be retrieved by performing a 
+trilinear interpolation.
+**
+Modified Files: src/heterogeneous.cpp, nori/volume.h, src/constFloatVolume.cpp, src/constRGBVolume.cpp, src/heightVolume.cpp
+## Anistropic Phase function
+As mentioned above, phase function to a great extent shape the sampling structures. In previous scenes I only adopt isotropic phase 
+function which scatter rays in all directions equally. A common anistropic fucntion is Henyey-Greenstein. The function is given by $p(\theta) = \frac{1}{4\pi}\frac{1-g^2}{(1+g^2-2gcos\theta)^{\frac{3}{2}}}$ 
+and the $\theta,\phi$ can be derived through inverse method accordingly. Since the function is normalized the return phaseValue cancel with the 
+pdf. From my perspective, the pseudo code on Lecture 16 slides 80 miss the phaseValue term when updating the throughput.
+****
+****
+## Emissive Medium
+The integral form of the volume rendering equation is $$L(x,\omega) = \int_x^ytr(x,x')[\sigma_s(x')\int f_p(x',\omega,\omega')L(x',\omega')d\omega'+E(x',\omega)]dx'+L_e(y,\omega)$$
+Therefore theoretically the emission term can be sampled along with the in-scattering term with respect to free path.
+Extra features shall be added for emissive medium. A sampleVolume() method in shape class together with the sample_radiance() method in emissive medium class to allow
+sampling a random point and query the corresponding radiance inside the medium. A Tr() method in medium for evaluating the transmittance between ref points and the sampled points.
+My idea is, each time when we scatter a new vertex inside the medium, we should add up the emission contribution at the specific point. And during the surface scattering phase,
+we should take the emissive medium into account as additional light source when performing multiple importance sampling. If an emissive medium is selected, we first sample 
+a random point inside the medium and retrieve the radiance. The pdf_ems should also be adjusted to the pdf of volume sampling. The light contribution should be multiplying
+the transmittance along the ray path in the medium, and incorportated into the surface mis.
+
+
+## Procedure Volume
+I adopt perlin noise method to automatically generate volume information in space. I generate the 3D grid inside the boundingbox of the medium, inserting the random 
+noise at each grid vertex and doing trilinear interpolation when queried of the value of a given point to its neighbouring grid vertices.
+I first implemented this feature for verification of my heterogeneous medium implementation, but the result at first glance shew no fierce variations from a homogeneous one, the
+results look more reasonable after I adding the emissive medium feature.
+The shape will only finish initializing after adding up all the child nodes, therefore the perlin noise generation process, which requires information of the shape that 
+the volume is attached to, cannot be invoked explicitly. We can inversely add shape to the medium with forward definition as a roundabout.
+
+
+## Validation
+**Comparison: Homogeneous Medium**
+    <img src="images/Nori_Mitsuba.png">
+    Though the variance of path tracer is significantly higher, the results are unbiased comparing to that of Mitsuba. The difference in the emitter seems a display gap between
+    Nori and Mitsuba, which also exists when comparing the reference images in PA4 to the results rendered in Mitsuba.
+****
+**Comparison: Homogeneous RGB albedo**
+<div class="twentytwenty-container">
+    <img src="images/homo_multi_RGB_nori.png" alt="Nori" class="img-responsive">
+    <img src="images/homo_multi_rgb_mts.png" alt="Mitsuba" class="img-responsive">
+</div>
+**Comparison: Object inside Medium**
+<div class="twentytwenty-container">
+    <img src="images/object_inside_medium.png" alt="Nori" class="img-responsive">
+    <img src="images/object_inside_medium_mts.png" alt="Mitsuba" class="img-responsive">
+</div>
+**Comparison: Anistropic**
+<div class="twentytwenty-container">
+    <img src="images/homo_hg_float_nori.png" alt="g = 0.7, Nori" class="img-responsive">
+    <img src="images/homo_hg_float_mts.png" alt="g = 0.7, Mitsuba" class="img-responsive">
+    <img src="images/homo_hg_0_float_nori.png" alt="g = 0, Nori" class="img-responsive">
+    <img src="images/homo_hg_0_float_mts.png" alt="g = 0, Mitsuba" class="img-responsive">
+</div>
+when the parameter g is 0, the results are the same with that of isotropical ones
+<div class="twentytwenty-container">
+    <img src="images/homo_y_float_nori.png" alt="iso, Nori" class="img-responsive">
+    <img src="images/homo_y_float_mts.png" alt="iso, Mitsuba" class="img-responsive">
+    <img src="images/homo_hg_0_float_nori.png" alt="g = 0, Nori" class="img-responsive">
+    <img src="images/homo_hg_0_float_mts.png" alt="g = 0, Mitsuba" class="img-responsive">
+</div>
+**Comparison: Constant Heterogeneous Medium and Homogeneous Medium**
+<div class="twentytwenty-container">
+    <img src="images/hete_single_float_nori.png" alt="Hete_Nori" class="img-responsive">
+    <img src="images/hete_single_float_mts.png" alt="Hete_Mitsuba" class="img-responsive">
+    <img src="images/homo_single_float_nori.png" alt="Homo_Nori" class="img-responsive">
+    <img src="images/homo_single_float_mts.png" alt="Homo_Mitsuba" class="img-responsive">
+</div>
+**Comparison: Procedure Volume**
+<div class="twentytwenty-container">
+    <img src="images/ems_perlin_float_nori.png" alt="Perlin with Emission" class="img-responsive">
+    <img src="images/hete_perlin_float_nori.png" alt="Perlin" class="img-responsive">
+</div>
+
+**Comparison: Emissive Medium**
+<div class="twentytwenty-container">
+    <img src="images/ems_multi_perlin_float_nori.png" alt="Emissive" class="img-responsive">
+    <img src="images/ems_non_multi_perlin_float_nori.png" alt="Non-Emissive" class="img-responsive">
+</div>
+Const and Procedual Volume Radiance
 <!-- Bootstrap core CSS and JavaScript -->
 
 <link href="../resources/offcanvas.css" rel="stylesheet">

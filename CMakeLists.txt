@@ -64,6 +64,9 @@ set(NORI_SOURCE_FILES
   include/nori/vector.h
   include/nori/warp.h
   include/nori/lodepng.h
+  include/nori/medium.h
+  include/nori/phasefunction.h
+  include/nori/volume.h
 
   # Source code files
   src/bitmap.cpp
@@ -110,7 +113,25 @@ set(NORI_SOURCE_FILES
   src/path_mats.cpp
   src/path_mis.cpp
   src/pointlight.cpp
+<<<<<<< HEAD
   src/lodepng.cpp
+=======
+  src/volpath.cpp
+  src/homogeneous.cpp
+  src/henyeyGreenstein.cpp
+  src/heterogeneous.cpp
+  src/isotropic.cpp
+  src/nullBSDF.cpp
+  src/volpath_1.cpp
+  src/volpath_mis.cpp
+  src/constantFloatVolume.cpp
+  src/perlinVolume.cpp
+  src/emissiveMedium.cpp
+  src/grid.cpp
+  src/perlinNoise3D.cpp
+  src/volpath_emission.cpp
+  src/heightVolume.cpp
+>>>>>>> f518beb6d82e4e2c72c71f286d0418fceec1d784
 )
 
 add_executable(nori ${NORI_SOURCE_FILES})

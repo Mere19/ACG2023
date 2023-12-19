@@ -68,6 +68,7 @@ NoriObject *loadFromXML(const std::string &filename) {
         ESampler              = NoriObject::ESampler,
         ETest                 = NoriObject::ETest,
         EReconstructionFilter = NoriObject::EReconstructionFilter,
+        EVolume               = NoriObject::EVolume,
 
         /* Properties */
         EBoolean = NoriObject::EClassTypeCount,
@@ -114,6 +115,7 @@ NoriObject *loadFromXML(const std::string &filename) {
     tags["rotate"]     = ERotate;
     tags["scale"]      = EScale;
     tags["lookat"]     = ELookAt;
+    tags["volume"]     = EVolume;
 
     /* Helper function to check if attributes are fully specified */
     auto check_attributes = [&](const pugi::xml_node &node, std::set<std::string> attrs) {

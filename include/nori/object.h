@@ -44,6 +44,7 @@ public:
         ESampler,
         ETest,
         EReconstructionFilter,
+        EVolume,
         EClassTypeCount
     };
 

@@ -97,6 +97,8 @@ public:
         return m_radiance * M_PI / sRec.pdf;
     }
 
+    virtual bool onSurface() const { return true; }
+
 
 protected:
     Color3f m_radiance;
