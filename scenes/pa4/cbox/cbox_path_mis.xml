@@ -6,7 +6,7 @@
 	<camera type="perspective">
 		<float name="fov" value="27.7856"/>
 		<transform name="toWorld">
-			<scale value="1,-1,-1"/>
+			<scale value="-1,1,1"/>
 			<lookat target="0, 0.893051, 4.41198" origin="0, 0.919769, 5.41159" up="0, 1, 0"/>
 		</transform>
 
@@ -35,7 +35,7 @@
 		<bsdf type="diffuse">
 			<!-- <color name="albedo" value="0.161 0.133 0.427"/> -->
 			<texture type="imagetexture" name="albedo">
-                <string name="filename" value="wall1.png"/>
+                <string name="filename" value="texture1.png"/>
                 <vector name="scale" value="1,1"/>
             </texture>
 		</bsdf>
@@ -77,4 +77,25 @@
 			<color name="radiance" value="15 15 15"/>
 		</emitter>
 	</mesh>
+
+	<mesh type="obj">
+        <string name="filename" value="walls.obj"/>
+
+        <transform name="toWorld">
+            <scale value="300, 300, 300"/>
+            <rotate angle="270" axis="0 0 1" />
+            <translate value="-1000, 1000, 0"/>
+        </transform>
+
+        <bsdf type="diffuse">
+			<texture type="imagetexture" name="albedo">
+                <string name="filename" value="texture1.png"/>
+                <vector name="scale" value="1,1"/>
+            </texture>
+        </bsdf>
+
+        <emitter type="area">
+            <color name="radiance" value="1, 1, 1"/>
+        </emitter>
+    </mesh>
 </scene>
