@@ -5,7 +5,7 @@
 	</sampler>
 
 	<!-- Use the average visibility integrator -->
-	<integrator type="av">
+	<integrator type="path_mats">
 		<float name="length" value="10"/>
 	</integrator>
 
@@ -27,14 +27,14 @@
 	<mesh type="obj">
 		<string name="filename" value="ajax.obj"/>
 
-		<bsdf type="diffuse"/>
+		<bsdf type="disney_diffuse"/>
 	</mesh>
 
 	<!-- Ground plane -->
 	<mesh type="obj">
 		<string name="filename" value="plane.obj"/>
 
-		<bsdf type="diffuse"/>
+		<bsdf type="disney_diffuse"/>
 
 		<transform name="toWorld">
 			<scale value="100,1,100"/>

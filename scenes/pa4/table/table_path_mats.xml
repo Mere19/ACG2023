@@ -67,8 +67,11 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/mesh_0.obj"/>
 
-		<bsdf type="microfacet">
+		<!-- <bsdf type="microfacet">
 			<color name="kd" value="0, 0, 0"/>
+		</bsdf> -->
+		<bsdf type="disney_sheen">
+			<color name="albedo" value="0.630 0.065 0.05"/>
 		</bsdf>
 		<transform name="toWorld">
 			<translate value="3,0,0"/>

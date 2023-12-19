@@ -25,7 +25,7 @@
     <mesh type="sphere">
         <point name="center" value="0,0,3"/>
         <float name="radius" value="3"/>
-        <bsdf type="diffuse">
+        <bsdf type="disney_diffuse">
             <texture type="checkerboard_color" name="albedo">
 								<vector name="scale" value="0.1,0.2"/>
                 <color name="value1" value="0.8,0.8,0.8"/>
