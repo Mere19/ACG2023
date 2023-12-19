@@ -146,6 +146,15 @@ float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
     }
 }
 
+Vector3f Warp::squareToTrowbridgeReitz(const Point2f &sample, float alphax, float alphay) {
+    // inverse sampling, see report
+    return NULL;
+}
+
+float Warp::squareToTrowbridgeReitzPdf(const Vector3f &m, float alphax, float alphay) {
+    return NULL;
+}
+
 Vector3f Warp::squareToUniformTriangle(const Point2f &sample) {
     float su1 = sqrtf(sample.x());
     float u = 1.f - su1, v = sample.y() * su1;

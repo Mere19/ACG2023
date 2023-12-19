@@ -78,6 +78,9 @@ public:
     /// Probability density of \ref squareToBeckmann()
     static float squareToBeckmannPdf(const Vector3f &m, float alpha);
 
+    static Vector3f squareToTrowbridgeReitz(const Point2f &sample, float alphax, float alphay);
+    static float squareToTrowbridgeReitzPdf(const Vector3f &m, float alphax, float alphay);
+
 
     static Vector3f squareToUniformTriangle(const Point2f &sample);
 

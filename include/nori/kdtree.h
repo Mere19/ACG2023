@@ -248,6 +248,7 @@ public:
         permute_inplace(&m_nodes[0], indirection);
 
         cout << "done." << endl;
+        cout.flush();
     }
 
     /**

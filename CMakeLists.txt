@@ -63,6 +63,7 @@ set(NORI_SOURCE_FILES
   include/nori/transform.h
   include/nori/vector.h
   include/nori/warp.h
+  include/nori/lodepng.h
   include/nori/medium.h
   include/nori/phasefunction.h
   include/nori/volume.h
@@ -74,6 +75,7 @@ set(NORI_SOURCE_FILES
   src/chi2test.cpp
   src/common.cpp
   src/consttexture.cpp
+  src/imagetexture.cpp
   src/checkerboard.cpp
   src/diffuse.cpp
   src/gui.cpp
@@ -96,6 +98,7 @@ set(NORI_SOURCE_FILES
   src/mirror.cpp
   src/dielectric.cpp
   src/photonmapper.cpp
+  src/ppm.cpp
   src/sphere.cpp
   src/arealight.cpp
   src/av.cpp
@@ -103,10 +106,14 @@ set(NORI_SOURCE_FILES
   src/direct_ems.cpp
   src/direct_mats.cpp
   src/direct_mis.cpp
+  src/disney_diffuse.cpp
+  src/disney_metallic.cpp
+  src/disney_sheen.cpp
   src/normals.cpp
   src/path_mats.cpp
   src/path_mis.cpp
   src/pointlight.cpp
+  src/lodepng.cpp
   src/volpath.cpp
   src/homogeneous.cpp
   src/henyeyGreenstein.cpp
@@ -123,6 +130,7 @@ set(NORI_SOURCE_FILES
   src/heightVolume.cpp
   src/constRGBVolume.cpp
   src/volpath_emission_mats.cpp
+  src/disney.cpp
 )
 
 add_executable(nori ${NORI_SOURCE_FILES})
