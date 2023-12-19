@@ -25,16 +25,16 @@ public:
     }
 
     bool sample_freepath(MediumQueryRecord& mRec, Sampler* sampler) const override{        
-        // sample distance based on delta tracking
-        Vector3f direction = -mRec.wi;
-        Ray3f ray = Ray3f(mRec.ref, direction, 0, mRec.tMax);
+        // sample distance based on delta tracking method, the majorant can be further refined
+        Ray3f ray = Ray3f(mRec.ref, -mRec.wi, 0, mRec.tMax);
         Color3f transmittance = Color3f(1);
         float mint, maxt;
         if (!m_shape->getBoundingBox().rayIntersect(ray, mint, maxt))
             return false;
         mint = std::max(mint, ray.mint);
         maxt = std::min(maxt, ray.maxt);
-        float t = mint, densityP = 0;
+        float t = mint;
+        float densityP = 0;
         
         while (true) {
             t += - log(1 - sampler->next1D()) * m_invMaxDensity;
@@ -48,7 +48,7 @@ public:
                 return true;
             }
         }
-        mRec.p = mRec.ref + mRec.tMax * direction;
+        mRec.p = mRec.ref + mRec.tMax * (-mRec.wi);
         mRec.ret = 1.f;
         return false;
     }
@@ -113,7 +113,6 @@ protected:
     float m_scale;
     float m_maxDensity;
     float m_invMaxDensity;
-    Transform m_worldToGrid;
     bool m_isRGB;
 };
 

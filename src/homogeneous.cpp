@@ -42,9 +42,9 @@ public:
             float sampled_distance = t < mRec.tMax ? t : mRec.tMax;
             bool valid = t < mRec.tMax ? true : false;
             for (int i = 0; i < 3; ++i) {
-                float tmp = exp(-m_sigma_t[i] * sampled_distance);
-                pdf_failure += tmp;
-                pdf_success += m_sigma_t[i] * tmp;
+                float tr = exp(-m_sigma_t[i] * sampled_distance);
+                pdf_failure += tr;
+                pdf_success += m_sigma_t[i] * tr;
             }
             pdf_success /= 3.f;
             pdf_failure /= 3.f;
@@ -65,8 +65,6 @@ public:
             if (deltaTrack) {
                 //perform delta tracking
                 Ray3f ray(mRec.ref, -mRec.wi, 0, mRec.tMax);
-                float pdf_failure = 1.0f;
-                float pdf_success = 1.0f;
                 Color3f transmittance = Color3f(1.0f);
                 float mint, maxt;
                 if (!m_shape->getBoundingBox().rayIntersect(ray, mint, maxt))
