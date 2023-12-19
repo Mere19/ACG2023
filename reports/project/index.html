@@ -9,7 +9,8 @@
 The implementation of depth of field made use of the built-in function of sampling a ray. In sampleRay() functions, if depth-of-field mode is switched on, 
 We define convergence point as $o+f\vec{d}$, $f$ being the focal length parameter. The resulting spherical plane generates in-focus images. Then we are 
 able to add the blur effects by shifting the $o$ by an apertureSample difference and recaculating the ray from the shifted origin to the focal point.
-****
+
+
 Modified Files: src/perspective.cpp
 ## Validation
 **Comparison: Depth of Field**
@@ -141,18 +142,19 @@ when the parameter g is 0, the results are the same with that of isotropical one
 The integral form of the volume rendering equation is $$L(x,\omega) = \int_x^ytr(x,x')[\sigma_s(x')\int f_p(x',\omega,\omega')L(x',\omega')d\omega'+E(x',\omega)]dx'+L_e(y,\omega)$$
 Therefore theoretically the emission term can be sampled along with the in-scattering term with respect to free path.
 
+The idea of implementation is analogous to next event estimation. When scattering inside a medium, we sample a random point inside a random emissive medium in the scene at every path vertex. The contribution, if valid(inside the medium shape and not occuluded), is then
+collected with the allowance of transmittance. We perform such estimation on each vertex, while the throughput and ray propogation are still powered by
+free-path and phase function.
 
-Extra features shall be added for emissive medium sampling. To sample a random point inside an emissive medium, we can make use of the idea of reject sampling. We uniformly sample
-a point inside the boundingbox. An rayCurrIntersect() method of bvh hierarchy to recursively find if the ray intersects with the exact
+
+Extra features shall be added for the emissive medium sampling. To sample a random point inside an emissive medium, we can make use of the idea of reject sampling. We uniformly sample
+a point inside the boundingbox, reject if it is outside the shape and accept otherwise. An rayCurrIntersect() method of bvh hierarchy to recursively find if the ray intersects with the exact
 shape we specified in the scene can be used to track if the connection of the sampled point in the boundingbox and the center of boundingbox intersects with the shape.
 If the intersection exists, we can determine the point is outside the shape and the contribution is rejected. Otherwise the distribution is accepted to maintain an unbiased sample inside
-the shape.
+the shape. The corresponding radiance can be acquired through methods in EmissiveMedium class.
 
-A Transmittance() method inside emissive volpath file is also required to keep record of the accumulated transmittance between two points in the scene. Here I implemented a naive version
+A Transmittance() method inside emissive volpath integrator is also required to keep record of the accumulated transmittance between two points in the scene. Here I implemented a naive version
 assuming there are no overlaps between media based on discussion in issues/122.
-
-The implementation is analogous to next event estimation. When scattering inside a medium, we sample a point inside a random emissive medium in the scene at every path vertex. the contribution, if valid(inside the medium shape and not occuluded), is then
-collected with the allowance of transmittance.
 
 Modified Files: 
 

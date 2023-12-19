@@ -62,6 +62,7 @@ void Shape::addChild(NoriObject *obj) {
             m_medium = static_cast<Medium *>(obj);
             m_medium->setShape(static_cast<Shape*>(this));
             if (m_medium->isHeterogeneous()) {
+                //generate grid
                 m_medium->volGrid();
             }
             break;
