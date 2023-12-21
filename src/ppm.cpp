@@ -51,8 +51,8 @@ public:
         /* Lookup parameters */
         m_photonCount  = props.getInteger("photonCount", 1000000);
         m_photonRadius = props.getFloat("photonRadius", 0.f);
-        m_iterCount = props.getInteger("iterCount", 10);
-        m_alpha = props.getFloat("alpha", 0.8);
+        m_iterCount = props.getInteger("iterCount", 16);
+        m_alpha = props.getFloat("alpha", 0.9);
     }
 
     virtual void preprocess(const Scene *scene) override {
