@@ -155,7 +155,7 @@
 		</bsdf>
 	</mesh>
 
-	<mesh type="obj">
+	<!-- <mesh type="obj">
 		<string name="filename" value="meshes/Ladder_Painter_Ready_lambert9SG.obj"/>
 
 		<bsdf name="lambert8SG" type="disney">
@@ -175,9 +175,9 @@
 			<float name="anisotropic" value="0.000000"/>
 			<float name="metallic" value="0.000000"/>
 		</bsdf>
-	</mesh>
+	</mesh> -->
 
-	<mesh type="obj">
+	<!-- <mesh type="obj">
 		<string name="filename" value="meshes/sheep.obj"/>
 
 		<bsdf name="TexMap" type="disney">
@@ -197,9 +197,9 @@
 			<float name="anisotropic" value="0.000000"/>
 			<float name="metallic" value="0.000000"/>
 		</bsdf>
-	</mesh>
+	</mesh> -->
 
-	<mesh type="obj">
+	<!-- <mesh type="obj">
 		<string name="filename" value="meshes/Hay_Stack_Hay_bale_latest_Hay_bale1.obj"/>
 
 		<bsdf name="Hay_bale_latest_Hay_bale1" type="disney">
@@ -219,7 +219,7 @@
 			<float name="anisotropic" value="0.000000"/>
 			<float name="metallic" value="0.000000"/>
 		</bsdf>
-	</mesh>
+	</mesh> -->
 
 	<mesh type="obj">
 		<string name="filename" value="meshes/Sphere.obj"/>
@@ -233,11 +233,11 @@
 		</emitter>
 	</mesh>
 
-	<mesh type="obj">
+	<!-- <mesh type="obj">
 		<string name="filename" value="meshes/Cube.obj"/>
 
 		<bsdf type="diffuse">
 			<color name="albedo" value="0.75,0.75,0.75"/>
 		</bsdf>
-	</mesh>
+	</mesh> -->
 </scene>
