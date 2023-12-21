@@ -65,8 +65,8 @@ public:
 		// put your code to trace photons here
 
         /* trace photon */
-        int currPhotonCount = 0;
         m_emittedPhotonCount = 0;
+        int currPhotonCount = 0;
         while (currPhotonCount < m_photonCount) {
             /* sample photon */
             const Emitter* light = scene->getRandomEmitter(sampler->next1D());

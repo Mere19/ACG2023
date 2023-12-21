@@ -3,7 +3,7 @@
 
 	<integrator type="progressive_photonmapper">
 		<!-- <integer name="photonCount" value="10000000"/> -->
-		<float name="photonRadius" value="0"/>
+		<!-- <float name="photonRadius" value="0"/> -->
 	</integrator>
 	
 	<sampler type="independent">
@@ -20,7 +20,7 @@
 	</camera>
 
 	<mesh type="obj">
-		<string name="filename" value="meshes/light.obj"/>
+		<string name="filename" value="meshes/light_2.obj"/>
 		<bsdf type="diffuse">
 			<color name="albedo" value="0,0,0"/>
 		</bsdf>

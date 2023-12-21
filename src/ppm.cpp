@@ -52,7 +52,7 @@ public:
         m_photonCount  = props.getInteger("photonCount", 1000000);
         m_photonRadius = props.getFloat("photonRadius", 0.f);
         m_iterCount = props.getInteger("iterCount", 10);
-        m_alpha = props.getFloat("alpha", 0.9);
+        m_alpha = props.getFloat("alpha", 0.8);
     }
 
     virtual void preprocess(const Scene *scene) override {
@@ -76,16 +76,16 @@ public:
         /* multiple photon passes */
         m_emittedPhotonCount = 0;
         for (int i = 0; i < m_iterCount; i ++) {
-            /* trace photon */
+            /* trace photons */
             int currPhotonCount = 0;
             while (currPhotonCount < m_photonCount) {
                 /* sample photon */
                 const Emitter* light = scene->getRandomEmitter(sampler->next1D());
                 const int n_lights = scene->getLights().size();
-                Intersection its;
-                Color3f t = 1.f;
                 Ray3f currRay;
+                Color3f t = 1.f;
                 Color3f w = light->samplePhoton(currRay, sampler->next2D(), sampler->next2D()) * n_lights;
+                Intersection its;
                 m_emittedPhotonCount ++;
                 
                 /* trace photon */
@@ -98,7 +98,7 @@ public:
                     if (its.mesh->getBSDF()->isDiffuse()) {
                         m_photonMaps[i]->push_back(Photon(
                             its.p,
-                            its.toLocal(-currRay.d),
+                            -currRay.d,
                             t * w
                         ));
                         currPhotonCount ++;
@@ -133,6 +133,7 @@ public:
     }
 
     virtual Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &_ray) const override {
+        Intersection its;
         Ray3f currRay = _ray;
         Color3f t = 1.f;
         Color3f color = 0;
@@ -140,7 +141,6 @@ public:
 
         /* ray trace */ 
         while (true) {
-            Intersection its;
             if (!scene->rayIntersect(currRay, its)) {
                 break;
             }
@@ -154,6 +154,7 @@ public:
             /* store hit point for diffuse surfaces */
             if (its.mesh->getBSDF()->isDiffuse()) {
                 hp.x = its.p;
+                hp.n = its.shFrame.n;
                 hp.w = its.toLocal(-currRay.d);
                 hp.bsdf = its.mesh->getBSDF();
                 hp.uv = its.uv;
@@ -187,7 +188,9 @@ public:
         for (int i = 0; i < m_iterCount; i ++) {
             /* progressive radicance estimate */
             std::vector<uint32_t> results;
-            m_photonMaps[i]->search(hp.x, hp.R, results);
+            m_photonMaps[i]->search(hp.x, // lookup position
+		            m_photonRadius,   // search radius
+		            results);
             if (results.size() == 0)
                 continue;
             // float density = (hp.N + results.size()) * INV_PI / (hp.R * hp.R);
@@ -201,10 +204,10 @@ public:
             Color3f taoM = 0;
             for (uint32_t j : results) {
                 const Photon &photon = (*m_photonMaps[i])[j];
-                BSDFQueryRecord bRec(hp.w.normalized(), photon.getDirection().normalized(), ESolidAngle);
+                BSDFQueryRecord bRec(hp.w.normalized(), Frame(hp.n).toLocal(photon.getDirection()), ESolidAngle);
                 bRec.p = hp.x;
                 bRec.uv = hp.uv;
-                taoM += hp.bsdf->eval(bRec) * photon.getPower();
+                taoM += hp.t * hp.bsdf->eval(bRec) * photon.getPower();
             }
 
             hp.tao = (hp.tao + taoM) * N / (hp.N + results.size());
@@ -212,12 +215,10 @@ public:
             hp.R = R;
         }
 
-        if (hp.N == 0) {
-            return color += 0;
-        } else if (hp.R == 0) {
-            return color += hp.t;
+        if (hp.N == 0 || hp.R == 0) {
+            return color;
         } else {
-            return color += hp.t * INV_PI * hp.tao / (m_emittedPhotonCount * hp.R * hp.R);
+            return (color + INV_PI * hp.tao / (m_emittedPhotonCount * hp.R * hp.R));
         }
     }
 

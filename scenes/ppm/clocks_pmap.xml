@@ -20,7 +20,7 @@
 	</camera>
 
 	<mesh type="obj">
-		<string name="filename" value="meshes/light.obj"/>
+		<string name="filename" value="meshes/light_2.obj"/>
 		<bsdf type="diffuse">
 			<color name="albedo" value="0,0,0"/>
 		</bsdf>
